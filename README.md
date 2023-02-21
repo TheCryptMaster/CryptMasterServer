@@ -27,6 +27,5 @@ Which action would you like to perform?:
 2) Remove Authenticated User
 3) Add Allowed Server
 4) Remove Allowed Server
-q) Quit
 
 
