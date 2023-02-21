@@ -206,7 +206,6 @@ def provide_secrete(request: Request, payload=Body(...)):
     response = get_secret(requested_password)
     return response
 
-client_host = get_web_user_ip_address(request)
 
 
 
