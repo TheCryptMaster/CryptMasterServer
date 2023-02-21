@@ -28,7 +28,7 @@ encryption_password = os.getenv('encryption_password')
 pyotp_seed = os.getenv('pyotp_seed')
 pyotp_issuer = os.getenv('pyotp_issuer')
 authenticate_users_file = '.authenticated_users'
-
+authenticated_servers_file = '.authenticated_servers'
 
 
 
@@ -37,6 +37,12 @@ def get_authenticated_users():
         authenticated_users = f.read().splitlines()
     return authenticated_users
 
+
+
+def get_authenticated_servers():
+    with open(authenticated_servers_file) as f:
+        authenticated_servers = f.read().splitlines()
+    return authenticated_servers
 
 
 def check_password(user, one_time_pass):
