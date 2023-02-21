@@ -63,3 +63,9 @@ sudo tail -f /var/log/supervisor/crypt_keeper-stdout---supervisor-SOMERANDOMIDEN
 
 STDERR
 sudo tail -f /var/log/supervisor/crypt_keeper-stderr---supervisor-SOMERANDOMIDENT.log
+
+Check status and restart service
+sudo supervisorctl status
+sudo supervisorctl stop crypt_keeper
+sudo supervisorctl start crypt_keeper
+sudo supervisorctl restart crypt_keeper
