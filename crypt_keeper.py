@@ -46,9 +46,20 @@ def get_authenticated_servers():
 
 
 def check_password(user, one_time_pass):
-    authenticated_users = get_authenticated_users()
+    users = get_authenticated_users()
+    if len(users) == 0:
+        return {'response': 'Invalid User'}
+    authenticated_users = {}
+    i = 0
+    while i < len(users):
+        account = users(i)
+        i += 1
+        user_secret = users(i)
+        i += 1
+        authenticated_users = authenticated_users | {account:user_secret}
     totp = pyotp.totp.TOTP(pyotp_seed).provisioning_uri(name=user, issuer_name=pyotp_issuer)
-    if user.lower() not in authenticated_users:
+    one_time_pass =
+    if user.lower() not in [*authenticated_users]:
         response = {'response': 'Invalid User'}
     elif totp != one_time_pass:
         response = {'response': 'Invalid One Time Passcode'}

@@ -9,7 +9,6 @@ import io
 
 load_dotenv()
 
-pyotp_seed = os.getenv('pyotp_seed')
 pyotp_issuer = os.getenv('pyotp_issuer')
 authenticate_users_file = '.authenticated_users'
 authenticated_servers_file = '.authenticated_servers'
@@ -48,10 +47,12 @@ def write_authenticated_servers(authenticated_servers):
 def generate_user():
     clear()
     user_email = input('Enter the email address of the user you are creating: ').lower()
+    pyotp_seed = pyotp.random_base32()
     totp = pyotp.totp.TOTP(pyotp_seed).provisioning_uri(name=user_email, issuer_name=pyotp_issuer)
     authenticated_users = get_authenticated_users()
     if user_email not in authenticated_users:
         authenticated_users.append(user_email)
+        authenticated_users.append(pyotp_seed)
         write_authenticated_users(authenticated_users)
     display_qr(totp)
     while True:
@@ -67,12 +68,13 @@ def remove_user():
         authenticated_users = get_authenticated_users()
         display_list = 'Please select the user to remove below\n'
         for user in authenticated_users:
-            display_list += f'\n{i}) - {user}'
+            if i % 2 != 0:
+                display_list += f'\n{i}) - {user}'
             i += 1
         display_list += '\nq) Quit/Cancel\n\n'
         selected_user = input(display_list)
         if selected_user.isdigit():
-            authenticated_users.pop(int(selected_user) - 1)
+            authenticated_users.pop((int(selected_user) * 2) - 1)
             write_authenticated_users(authenticated_users)
         elif selected_user.lower() == 'q':
             break
