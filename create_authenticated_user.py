@@ -31,8 +31,9 @@ def generate_user():
     user_email = input('Enter the email address of the user you are creating: ')
     totp = pyotp.totp.TOTP(pyotp_seed).provisioning_uri(name=user_email, issuer_name=pyotp_issuer)
     authenticated_users = get_authenticated_users()
-    authenticated_users.append(user_email)
-    write_authenticated_users(authenticated_users)
+    if user_email not in authenticated_users:
+        authenticated_users.append(user_email)
+        write_authenticated_users(authenticated_users)
     display_qr(totp)
     return
 
