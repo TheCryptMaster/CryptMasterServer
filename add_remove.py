@@ -12,6 +12,7 @@ load_dotenv()
 pyotp_seed = os.getenv('pyotp_seed')
 pyotp_issuer = os.getenv('pyotp_issuer')
 authenticate_users_file = '.authenticated_users'
+authenticated_servers_file = '.authenticated_servers'
 
 
 
@@ -27,6 +28,21 @@ def write_authenticated_users(authenticated_users):
     for authenticated_user in authenticated_users:
         f.write(authenticated_user + "\n")
     f.close()
+    return
+
+
+def get_authenticated_servers():
+    with open(authenticated_servers_file) as f:
+        authenticated_servers = f.read().splitlines()
+    return authenticated_servers
+
+
+def write_authenticated_servers(authenticated_servers):
+    f = open(authenticated_servers_file, 'w+')
+    for authenticated_server in authenticated_servers:
+        f.write(authenticated_server + "\n")
+    f.close()
+    return
 
 
 def generate_user():
@@ -38,20 +54,63 @@ def generate_user():
         write_authenticated_users(authenticated_users)
     display_qr(totp)
     while True:
-        input('\n\nAdd your code to your authenticator app now.  Press any key to continue.')
+        input('\n\nAdd your code to your authenticator app now.  Press Enter to continue.')
         break
+    clear()
     return
 
 
 def remove_user():
-    pass
+    while True:
+        i = 1
+        authenticated_users = get_authenticated_users()
+        display_list = 'Please select the user to remove below\n'
+        for user in authenticated_users = get_authenticated_users():
+            display_list += f'\n{i}) - {user}'
+        display_list += '\nq) Quite/Cancel\n\n'
+        selected_user = input(display_list)
+        if selected_user.isdigit():
+            authenticated_servers.pop(int(selected_user))
+            write_authenticated_users(authenticated_users)
+        elif selected_user.lower() == 'q':
+            break
+        clear()
+        print('That is not a valid option.  Please try again:\n\n')
+    clear()
+    return
 
 
 def add_server():
-    pass
+    authenticated_servers = get_authenticated_users()
+    server = input('Enter the IP Address of the Server you would like to add: ').lower()
+    if server not in authenticated_servers:
+        authenticated_servers.append(server)
+        write_authenticated_servers(authenticated_servers)
+    clear()
+    return
 
 def remove_server():
-    pass
+    while True:
+        i = 1
+        authenticated_servers = get_authenticated_users()
+        display_list = 'Please select the server to remove below\n'
+        for server in authenticated_servers:
+            display_list += f'\n{i}) - {server}'
+        display_list += '\nq) Quite/Cancel\n\n'
+        selected_server = input(display_list)
+        if selected_server.isdigit():
+            authenticated_servers.pop(int(selected_server))
+            write_authenticated_servers(authenticated_servers)
+        elif selected_server.lower() == 'q':
+            break
+        clear()
+        print('That is not a valid option.  Please try again:\n\n')
+    clear()
+    return
+
+
+
+
 
 
 def display_qr(totp):
@@ -75,16 +134,24 @@ def get_request_type():
         request_type = input(request_text)
         if request_type.lower() == '1':
             generate_user()
+            continue
         elif request_type.lower() == '2':
             remove_user()
+            continue
         elif request_type.lower() == '3':
             add_server()
+            continue
         elif request_type.lower() == '4':
             remove_server()
+            continue
         elif request_type.lower() == 'q':
             break
         clear()
         print('That is not a valid option.  Please try again:\n\n')
+    clear()
+    print('Thank you for using the Crypt Keeper')
+    return
+
 
 
 def clear():
