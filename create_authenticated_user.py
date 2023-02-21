@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-pyotp_seed = os.getenv(pyotp_seed)
-pyotp_issuer = os.getenv(pyotp_issuer)
+pyotp_seed = os.getenv('pyotp_seed')
+pyotp_issuer = os.getenv('pyotp_issuer')
 authenticate_users_file = '.authenticated_users'
 
 
