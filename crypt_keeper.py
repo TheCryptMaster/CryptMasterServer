@@ -1,20 +1,13 @@
 #!/usr/bin/python3
 
-# ToDo reward calculation for future rewards for 1 wallet
-# ToDo Add user save post
-
-
-from fastapi import FastAPI, Body, Depends, HTTPException, status, UploadFile, File, Request, Form, Header, Response, Security
-from fastapi.security import OAuth2PasswordBearer, HTTPAuthorizationCredentials, HTTPBearer
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
+import pyotp
+import time
+from fastapi import FastAPI
 from fastapi_limiter import FastAPILimiter
-from fastapi_limiter.depends import RateLimiter
 import redis.asyncio as redis
-from fastapi_jwt_auth import AuthJWT
-from fastapi_jwt_auth.exceptions import AuthJWTException
+import os
 from dotenv import load_dotenv
-from pydantic import BaseModel
+
 
 import pytz
 import uvicorn
@@ -22,21 +15,15 @@ import uvicorn
 
 
 load_dotenv()
-api_port = 8095
+api_port = 20120
 utc = pytz.UTC
 app = FastAPI()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 
-
-
-#https://codevoweb.com/api-with-python-fastapi-and-mongodb-jwt-authentication/
-
-@AuthJWT.load_config
-def get_config():
-    return Settings()
-
+db_connection = os.getenv('db_connection')
+async_db_connection = os.getenv('async_db_connection')
+encryption_password = os.getenv('encryption_password')
 
 
 
@@ -53,14 +40,6 @@ origins = [
     "http://localhost",
     "http://localhost:8095"
 ]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=['*'],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 
