@@ -38,7 +38,7 @@ def generate_user():
         write_authenticated_users(authenticated_users)
     display_qr(totp)
     while true:
-        input = ('\n\nAdd your code to your authenticator app now.  Press any key to continue.')
+        input('\n\nAdd your code to your authenticator app now.  Press any key to continue.')
         break
     return
 
