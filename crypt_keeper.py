@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import pyotp
-import time
 from datetime import datetime, timedelta
 from fastapi import FastAPI
 from fastapi_limiter import FastAPILimiter
