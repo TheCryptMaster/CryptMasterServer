@@ -7,6 +7,10 @@ Create two empty files:
 touch .authenticated_users
 touch .authenticated_servers
 
+Install requirements
+
+pip install -r requirements.txt
+
 Create new .env file using the ENV_EXAMPLE as a loose template.  Tailor this to your needs.
 
 Set your one time password seed in the env file.  You can use your own password, or use:
