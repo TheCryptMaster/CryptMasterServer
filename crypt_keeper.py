@@ -80,19 +80,19 @@ def check_password(user, one_time_pass, client_host):
     authenticated_users = {}
     i = 0
     while i < len(users):
-        account = users(i)
+        account = users[i]
         i += 1
-        user_secret = users(i)
+        user_secret = users[i]
+        authenticated_users = authenticated_users | {account: user_secret}
         i += 1
-        authenticated_users = authenticated_users | {account:user_secret}
     pyotp_seed = authenticated_users.get(user, None)
-    totp = pyotp.totp.TOTP(pyotp_seed).provisioning_uri(name=user, issuer_name=pyotp_issuer)
+    totp = pyotp.TOTP(pyotp_seed)
     if user.lower() not in [*authenticated_users]:
         print(f'User: {user} at IP Address {client_host} attempted to open api and is not an authorized user')
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
         return
-    elif one_time_pass != totp.now():
+    elif str(one_time_pass) != totp.now():
         print(f'User: {user} at IP Address {client_host} attempted to open api with an invalid OTP')
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
