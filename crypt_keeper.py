@@ -110,4 +110,4 @@ async def startup():
 
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='0', port=api_port, ssl_keyfile='.privkey.pem', ssl_certfile='.fullchain.pem', debug=False, reload=False)
+    uvicorn.run(app, host='0', port=api_port, ssl_keyfile='.privkey.pem', ssl_certfile='.fullchain.pem', reload=False)
