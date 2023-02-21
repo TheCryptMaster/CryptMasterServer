@@ -90,5 +90,5 @@ https://your-api-name.your-domain.com:5010/get_secret
 
 Payload = 
 {
- "requested_password": "password-you-need-to-retrieve"
+ "requested_password": "test_password"
 }
