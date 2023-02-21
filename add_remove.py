@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 import qrcode
 import io
+from time import sleep
 
 load_dotenv()
 
@@ -54,11 +55,15 @@ def generate_user():
         authenticated_users.append(user_email)
         authenticated_users.append(pyotp_seed)
         write_authenticated_users(authenticated_users)
-    display_qr(totp)
-    while True:
-        input('\n\nAdd your code to your authenticator app now.  Press Enter to continue.')
-        break
-    clear()
+        display_qr(totp)
+        while True:
+            input('\n\nAdd your code to your authenticator app now.  Press Enter to continue.')
+            break
+        clear()
+    else:
+        print('That user already exists.  Use remove user first to re-create OTP Seed.')
+        print('Returning to main menu in 5 seconds.')
+        sleep(5)
     return
 
 
