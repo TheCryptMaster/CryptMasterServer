@@ -68,7 +68,7 @@ def remove_user():
         for user in authenticated_users:
             display_list += f'\n{i}) - {user}'
             i += 1
-        display_list += '\nq) Quite/Cancel\n\n'
+        display_list += '\nq) Quit/Cancel\n\n'
         selected_user = input(display_list)
         if selected_user.isdigit():
             authenticated_users.pop(int(selected_user) - 1)
@@ -82,7 +82,7 @@ def remove_user():
 
 
 def add_server():
-    authenticated_servers = get_authenticated_users()
+    authenticated_servers = get_authenticated_servers()
     server = input('Enter the IP Address of the Server you would like to add: ').lower()
     if server not in authenticated_servers:
         authenticated_servers.append(server)
@@ -93,12 +93,12 @@ def add_server():
 def remove_server():
     while True:
         i = 1
-        authenticated_servers = get_authenticated_users()
+        authenticated_servers = get_authenticated_servers()
         display_list = 'Please select the server to remove below\n'
         for server in authenticated_servers:
             display_list += f'\n{i}) - {server}'
             i += 1
-        display_list += '\nq) Quite/Cancel\n\n'
+        display_list += '\nq) Quit/Cancel\n\n'
         selected_server = input(display_list)
         if selected_server.isdigit():
             authenticated_servers.pop(int(selected_server) - 1)
