@@ -67,10 +67,11 @@ def remove_user():
         display_list = 'Please select the user to remove below\n'
         for user in authenticated_users:
             display_list += f'\n{i}) - {user}'
+            i += 1
         display_list += '\nq) Quite/Cancel\n\n'
         selected_user = input(display_list)
         if selected_user.isdigit():
-            authenticated_servers.pop(int(selected_user))
+            authenticated_users.pop(int(selected_user) - 1)
             write_authenticated_users(authenticated_users)
         elif selected_user.lower() == 'q':
             break
@@ -96,10 +97,11 @@ def remove_server():
         display_list = 'Please select the server to remove below\n'
         for server in authenticated_servers:
             display_list += f'\n{i}) - {server}'
+            i += 1
         display_list += '\nq) Quite/Cancel\n\n'
         selected_server = input(display_list)
         if selected_server.isdigit():
-            authenticated_servers.pop(int(selected_server))
+            authenticated_servers.pop(int(selected_server) - 1)
             write_authenticated_servers(authenticated_servers)
         elif selected_server.lower() == 'q':
             break
