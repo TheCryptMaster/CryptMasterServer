@@ -90,6 +90,8 @@ def remove_user():
             authenticated_users.pop((int(selected_user) * 2) - 1)
             authenticated_users.pop((int(selected_user) * 2) - 2)
             write_authenticated_users(authenticated_users)
+            if len(authenticated_users) == 0:
+                break
         elif selected_user.lower() == 'q':
             break
         clear()
@@ -132,6 +134,8 @@ def remove_server():
         if selected_server.isdigit():
             authenticated_servers.pop(int(selected_server) - 1)
             write_authenticated_servers(authenticated_servers)
+            if len(authenticated_servers) == 0:
+                break
         elif selected_server.lower() == 'q':
             break
         clear()
