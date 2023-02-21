@@ -64,9 +64,9 @@ def display_qr(totp):
 
 
 def get_request_type():
-    request_text = 'Welcome to the Crypt Keeper\n\nWhich action would you like to perform?:\n\n'
-                         '1) Add Authenticated User\n2) Remove Authenticated User\n'
-                         '3) Add Allowed Server\n4) Remove Allowed Server\nq) Quit\n\n'
+    request_text = 'Welcome to the Crypt Keeper\n\nWhich action would you like to perform?:\n\n' \
+                   '1) Add Authenticated User\n2) Remove Authenticated User\n' \
+                    '3) Add Allowed Server\n4) Remove Allowed Server\nq) Quit\n\n'
     os.system('cls')
     while True:
         request_type = input(request_text)
