@@ -1,2 +1,4 @@
 pyotp==2.8.0
 fastapi==0.92.0
+python-dotenv==0.21.1
+uvicorn==0.20.0
