@@ -71,7 +71,7 @@ def generate_user():
 def remove_user():
     clear()
     while True:
-        i = 1
+        i, display_ix = 0, 1
         authenticated_users = get_authenticated_users()
         if len(authenticated_users) == 0:
             print('No users currently authorized.  Use add user to add an authenticated user.')
@@ -81,8 +81,9 @@ def remove_user():
             return
         display_list = 'Please select the user to remove below\n'
         for user in authenticated_users:
-            if i % 2 != 0:
-                display_list += f'\n{i}) - {user}'
+            if i % 2 == 0:
+                display_list += f'\n{display_ix}) - {user}'
+                display_ix += 1
             i += 1
         display_list += '\nq) Quit/Cancel\n\n'
         selected_user = input(display_list)
