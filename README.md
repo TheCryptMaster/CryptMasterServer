@@ -14,7 +14,7 @@ Set your one time password seed in the env file.  You can use your own password,
 import pyotp
 pyotp.random_base32()
 
-WARNING!!!! You will be storing your actual passwords in the .env file.  It is imperative that there is not remote command prompt left open to this server.
+WARNING!!!! You will be storing your actual passwords in the .env file.  It is imperative that there is not any remote command prompt left open to this server.
 
 ## Adding or Removing Users and Servers
 
