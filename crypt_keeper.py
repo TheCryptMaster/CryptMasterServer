@@ -190,7 +190,7 @@ def validate_credentials(request: Request, payload=Body(...)):
 
 
 
-@app.post("/get_secret", dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+@app.post("/get_secret")
 def provide_secrete(request: Request, payload=Body(...)):
     authenticated_servers = get_authenticated_servers()
     client_host = get_web_user_ip_address(request)
