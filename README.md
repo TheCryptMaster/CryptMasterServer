@@ -11,8 +11,20 @@ Install requirements
 
 pip install -r requirements.txt
 
-sudo apt-get install redis-server
-sudo apt-get install supervisor
+sudo apt update
+sudo apt full-upgrade
+sudo apt-get install redis-server supervisor certbot
+
+create certificate:
+sudo certbot certonly -d your-api-name.your-domain.com
+
+copy cert in to running folder:
+sudo cp /etc/letsencrypt/live/your-api-name.your-domain.com/fullchain.pem .fullchain.pem
+sudo cp /etc/letsencrypt/live/your-api-name.your-domain.com/privkey.pem .privkey.pem
+
+modify files:
+sudo chmod +x crypt_keeper.py
+sudo chown yourname:yourname *.pem
 
 Copy SUPERVISOR_EXAMPLE to /etc/supervisor/conf.d/crypt_keeper.conf
 Modify example as necessary.
@@ -40,3 +52,14 @@ Which action would you like to perform?:
 4) Remove Allowed Server
 
 
+
+Logging 
+
+Find the current random ident
+sudo ls /var/log/supervisor/crypt_keeper-std*
+
+STDOUT
+sudo tail -f /var/log/supervisor/crypt_keeper-stdout---supervisor-SOMERANDOMIDENT.log
+
+STDERR
+sudo tail -f /var/log/supervisor/crypt_keeper-stderr---supervisor-SOMERANDOMIDENT.log

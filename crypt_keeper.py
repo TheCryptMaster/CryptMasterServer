@@ -15,10 +15,16 @@ import uvicorn
 
 
 load_dotenv()
-api_port = 20120
+
 utc = pytz.UTC
 app = FastAPI()
-
+authenticate_users_file = '.authenticated_users'
+authenticated_servers_file = '.authenticated_servers'
+fail_count = 0
+fail_disable = datetime.now()
+active_until = datetime.now()
+keep_active = 5 #minutes
+disable_time = 60 #minutes
 
 
 db_connection = os.getenv('db_connection')
@@ -26,8 +32,7 @@ async_db_connection = os.getenv('async_db_connection')
 encryption_password = os.getenv('encryption_password')
 pyotp_seed = os.getenv('pyotp_seed')
 pyotp_issuer = os.getenv('pyotp_issuer')
-authenticate_users_file = '.authenticated_users'
-authenticated_servers_file = '.authenticated_servers'
+api_port = int(os.getenv('api_port'))
 
 
 
@@ -45,9 +50,14 @@ def get_authenticated_servers():
 
 
 def check_password(user, one_time_pass):
+    global fail_count
+    if check_fail_disable():
+        raise HTTPException(status_code=403, detail="System Disabled")
     users = get_authenticated_users()
     if len(users) == 0:
-        return {'response': 'Invalid User'}
+        set_fail()
+        raise HTTPException(status_code=403, detail="Invalid Credentials")
+        return
     authenticated_users = {}
     i = 0
     while i < len(users):
@@ -56,23 +66,39 @@ def check_password(user, one_time_pass):
         user_secret = users(i)
         i += 1
         authenticated_users = authenticated_users | {account:user_secret}
+    pyotp_seed = authenticated_users.get(user, None)
     totp = pyotp.totp.TOTP(pyotp_seed).provisioning_uri(name=user, issuer_name=pyotp_issuer)
-    one_time_pass =
     if user.lower() not in [*authenticated_users]:
-        response = {'response': 'Invalid User'}
-    elif totp != one_time_pass:
-        response = {'response': 'Invalid One Time Passcode'}
+        set_fail()
+        raise HTTPException(status_code=403, detail="Invalid Credentials")
+        return
+    elif one_time_pass != totp.now():
+        set_fail()
+        raise HTTPException(status_code=403, detail="Invalid Credentials")
     else:
         active_until = set_active_until()
         string_time = active_until.strftime("%m-%d-%Y_%Hh%Mm%Ss")
         response = {'response': 'Success', 'active_until': string_time}
+        clear_fails()
     return response
 
+def check_fail_disable():
+    return fail_disable > datetime.now()
+
+def set_fail():
+    global fail_count, fail_disable
+    fail_count += 1
+    if fail_count >= 3:
+        fail_disable = datetime.now() + timedelta(minutes=disable_time)
+    return
 
 
-keep_active = 5 #minutes
+def clear_fails():
+    global fail_count
+    fail_count = 0
+    return
 
-active_until = datetime.now()
+
 
 
 def check_active():

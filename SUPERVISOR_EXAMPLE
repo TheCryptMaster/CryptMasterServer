@@ -1,7 +1,7 @@
 [program:crypt_keeper]
 environment = PYTHONUNBUFFERED=1
-directory=$HOME/crypt_keeper
-command=$HOME/crypt_keeper/crypt_keeper.py
+directory=/full/path/crypt_keeper
+command=/full/path/crypt_keeper/crypt_keeper.py
 user=your_user
 autostart=true
 autorestart=true
