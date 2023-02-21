@@ -38,7 +38,7 @@ def get_authenticated_users():
 def check_password(user, one_time_pass):
     authenticated_users = get_authenticated_users()
     totp = pyotp.totp.TOTP(pyotp_seed).provisioning_uri(name=user, issuer_name=pyotp_issuer)
-    if user not in authenticated_users:
+    if user.lower() not in authenticated_users:
         response = {'response': 'Invalid User'}
     elif totp != one_time_pass:
         response = {'response': 'Invalid One Time Passcode'}
