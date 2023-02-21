@@ -36,6 +36,23 @@ api_port = int(os.getenv('api_port'))
 
 
 
+
+origins = [
+    "https://api.themorphium.io:8095",
+    "http://localhost",
+    "http://localhost:8095"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
 def get_authenticated_users():
     with open(authenticate_users_file) as f:
         authenticated_users = f.read().splitlines()
@@ -69,13 +86,16 @@ def check_password(user, one_time_pass):
     pyotp_seed = authenticated_users.get(user, None)
     totp = pyotp.totp.TOTP(pyotp_seed).provisioning_uri(name=user, issuer_name=pyotp_issuer)
     if user.lower() not in [*authenticated_users]:
+        print(f'User: {user} at IP Address {client_host} attempted to open api and is not an authorized user')
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
         return
     elif one_time_pass != totp.now():
+        print(f'User: {user} at IP Address {client_host} attempted to open api with an invalid OTP')
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
     else:
+        print(f'User: {user} at IP Address {client_host} SUCCESSFULLY OPENED API')
         active_until = set_active_until()
         string_time = active_until.strftime("%m-%d-%Y_%Hh%Mm%Ss")
         response = {'response': 'Success', 'active_until': string_time}
@@ -114,23 +134,77 @@ def set_active_until():
 
 
 
-origins = [
-    "https://api.themorphium.io:8095",
-    "http://localhost",
-    "http://localhost:8095"
-]
+
+def get_web_user_ip_address(request):
+    client_host = request.client.host
+    return client_host
 
 
 
 
-
-## STARTUP - Rate Limiter
 @app.on_event("startup")
 async def startup():
     limiter = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
     await FastAPILimiter.init(limiter)
 
-# GETS
+
+
+@app.post("/enable_api", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
+def validate_credentials(request: Request, payload=Body(...)):
+    client_host = get_web_user_ip_address(request)
+    if check_fail_disable():
+        print(f'IP Address {client_host} attempted to get secret while system is disabled.')
+        set_fail()
+        raise HTTPException(status_code=403, detail="API Disabled")
+        return
+    user = payload.get('user_name', None)
+    one_time_pass = payload.get('otp', None)
+    if user == None or one_time_pass == None:
+        set_fail()
+        raise HTTPException(status_code=403, detail="Invalid Credentials")
+    response = check_password(user, one_time_pass, client_host)
+    return response
+
+
+
+def get_secret(requested_password):
+    if requested_password == 'db_connection':
+        secret = db_connection
+    elif requested_password == 'async_db_connection':
+        secret = async_db_connection
+    elif requested_password == 'encryption_password':
+        secret = encryption_password
+    else:
+        secret = None
+    response = {'response': 'SUCCESS', 'secret': secret}
+    return response
+
+
+@app.post("/get_secret", dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+def provide_secrete(request: Request, payload=Body(...)):
+    authenticated_servers = get_authenticated_servers()
+    client_host = get_web_user_ip_address(request)
+    if client_host not in authenticated_servers:
+        print(f'IP Address {client_host} attempted to get secret, and is not an authorized client')
+        set_fail()
+        raise HTTPException(status_code=403, detail="ACCESS DENIED")
+        return
+    elif check_fail_disable():
+        print(f'IP Address {client_host} attempted to get secret while system is disabled.')
+        set_fail()
+        raise HTTPException(status_code=403, detail="API Disabled")
+        return
+    elif not check_active():
+        print(f'IP Address {client_host} attempted to get secret.  OTP has not been provided.')
+        set_fail()
+        return {'response': 'Authorized user must provide OTP'}
+    requested_password = payload.get('requested_password', None)
+    if requested_password == None:
+        return {'response': 'No secret requested'}
+    response = get_secret(requested_password)
+    return response
+
+client_host = get_web_user_ip_address(request)
 
 
 
