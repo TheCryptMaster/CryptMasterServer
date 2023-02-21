@@ -69,6 +69,7 @@ def generate_user():
 
 
 def remove_user():
+    clear()
     while True:
         i = 1
         authenticated_users = get_authenticated_users()
@@ -98,6 +99,7 @@ def remove_user():
 
 
 def add_server():
+    clear()
     authenticated_servers = get_authenticated_servers()
     server = input('Enter the IP Address of the Server you would like to add: ').lower()
     if server not in authenticated_servers:
@@ -111,6 +113,7 @@ def add_server():
     return
 
 def remove_server():
+    clear()
     while True:
         i = 1
         authenticated_servers = get_authenticated_servers()
