@@ -32,6 +32,7 @@ disable_time = 60 #minutes
 db_connection = os.getenv('db_connection')
 async_db_connection = os.getenv('async_db_connection')
 encryption_password = os.getenv('encryption_password')
+test_password = "You're did it!"
 pyotp_seed = os.getenv('pyotp_seed')
 pyotp_issuer = os.getenv('pyotp_issuer')
 api_port = int(os.getenv('api_port'))
@@ -107,7 +108,9 @@ def check_password(user, one_time_pass, client_host):
 
 
 def get_secret(requested_password):
-    if requested_password == 'db_connection':
+    if requested_password == 'test_password':
+        secret = test_password
+    elif requested_password == 'db_connection':
         secret = db_connection
     elif requested_password == 'async_db_connection':
         secret = async_db_connection
