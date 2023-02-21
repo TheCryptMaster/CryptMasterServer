@@ -11,6 +11,12 @@ Install requirements
 
 pip install -r requirements.txt
 
+sudo apt-get install redis-server
+sudo apt-get install supervisor
+
+Copy SUPERVISOR_EXAMPLE to /etc/supervisor/conf.d/crypt_keeper.conf
+Modify example as necessary.
+
 Create new .env file using the ENV_EXAMPLE as a loose template.  Tailor this to your needs.
 
 Set your one time password seed in the env file.  You can use your own password, or use:
