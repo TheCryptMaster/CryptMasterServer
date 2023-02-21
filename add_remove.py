@@ -67,7 +67,7 @@ def get_request_type():
     request_text = 'Welcome to the Crypt Keeper\n\nWhich action would you like to perform?:\n\n' \
                    '1) Add Authenticated User\n2) Remove Authenticated User\n' \
                     '3) Add Allowed Server\n4) Remove Allowed Server\nq) Quit\n\n'
-    os.system('cls')
+    clear()
     while True:
         request_type = input(request_text)
         if request_type.lower() == '1':
@@ -80,8 +80,18 @@ def get_request_type():
             remove_server()
         elif request_type.lower() == 'q':
             break
-        os.system('cls')
+        clear()
         print('That is not a valid option.  Please try again:\n\n')
+
+
+def clear():
+    # for windows
+    if os.name == 'nt':
+        _ = os.system('cls')
+
+    # for mac and linux(here, os.name is 'posix')
+    else:
+        _ = os.system('clear')
 
 
 get_request_type()
