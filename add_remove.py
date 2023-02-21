@@ -61,8 +61,8 @@ def generate_user():
             break
         clear()
     else:
-        print('That user already exists.  Use remove user first to re-create OTP Seed.')
-        print('Returning to main menu in 5 seconds.')
+        print('\n\nThat user already exists.  Use remove user first to re-create OTP Seed.')
+        print('\nReturning to main menu in 5 seconds.')
         sleep(5)
         clear()
     return
@@ -104,8 +104,8 @@ def add_server():
         authenticated_servers.append(server)
         write_authenticated_servers(authenticated_servers)
     else:
-        print('\n\nThat server already exists.\n\n')
-        print('Returning to main menu in 5 seconds.')
+        print('\n\nThat server already exists.')
+        print('\nReturning to main menu in 5 seconds.')
         sleep(5)
     clear()
     return
