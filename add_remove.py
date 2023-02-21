@@ -65,7 +65,7 @@ def remove_user():
         i = 1
         authenticated_users = get_authenticated_users()
         display_list = 'Please select the user to remove below\n'
-        for user in authenticated_users = get_authenticated_users():
+        for user in authenticated_users
             display_list += f'\n{i}) - {user}'
         display_list += '\nq) Quite/Cancel\n\n'
         selected_user = input(display_list)
