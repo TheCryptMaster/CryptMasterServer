@@ -74,7 +74,8 @@ def remove_user():
         display_list += '\nq) Quit/Cancel\n\n'
         selected_user = input(display_list)
         if selected_user.isdigit():
-            authenticated_users.pop((int(selected_user) * 2) - 2)
+            authenticated_users.pop((int(selected_user) * 2) - 1)
+            authenticated_users.pop((int(selected_user) * 2) - 1)
             write_authenticated_users(authenticated_users)
         elif selected_user.lower() == 'q':
             break
