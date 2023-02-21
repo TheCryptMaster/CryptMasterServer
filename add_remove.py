@@ -72,6 +72,11 @@ def remove_user():
     while True:
         i = 1
         authenticated_users = get_authenticated_users()
+        if len(authenticated_users) == 0:
+            print('No users currently authorized.  Use add user to add an authenticated user.')
+            print('Returning to main menu in 5 seconds.')
+            sleep(5)
+            return
         display_list = 'Please select the user to remove below\n'
         for user in authenticated_users:
             if i % 2 != 0:
@@ -104,6 +109,11 @@ def remove_server():
     while True:
         i = 1
         authenticated_servers = get_authenticated_servers()
+        if len(authenticated_servers) == 0:
+            print('No servers currently authorized.  Use add server to add an authenticated server.')
+            print('Returning to main menu in 5 seconds.')
+            sleep(5)
+            return
         display_list = 'Please select the server to remove below\n'
         for server in authenticated_servers:
             display_list += f'\n{i}) - {server}'
