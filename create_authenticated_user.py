@@ -21,7 +21,7 @@ def get_authenticated_users():
 
 
 def write_authenticated_users(authenticated_users):
-    f = open(authenticate_users_file, 'r')
+    f = open(authenticate_users_file, 'w+')
     for authenticated_user in authenticated_users:
         f.write(authenticated_user + "\n")
     f.close()
