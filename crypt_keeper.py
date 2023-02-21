@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
 import redis.asyncio as redis
 import os
 from dotenv import load_dotenv
