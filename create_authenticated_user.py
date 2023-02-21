@@ -4,6 +4,7 @@
 import pyotp
 import os
 from dotenv import load_dotenv
+import qrcode
 
 load_dotenv()
 
