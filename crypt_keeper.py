@@ -68,7 +68,7 @@ def get_authenticated_servers():
     return authenticated_servers
 
 
-def check_password(user, one_time_pass):
+def check_password(user, one_time_pass, client_host):
     global fail_count
     if check_fail_disable():
         raise HTTPException(status_code=403, detail="System Disabled")
@@ -103,6 +103,21 @@ def check_password(user, one_time_pass):
         response = {'response': 'Success', 'active_until': string_time}
         clear_fails()
     return response
+
+
+
+def get_secret(requested_password):
+    if requested_password == 'db_connection':
+        secret = db_connection
+    elif requested_password == 'async_db_connection':
+        secret = async_db_connection
+    elif requested_password == 'encryption_password':
+        secret = encryption_password
+    else:
+        secret = None
+    response = {'response': 'SUCCESS', 'secret': secret}
+    return response
+
 
 def check_fail_disable():
     return fail_disable > datetime.now()
@@ -169,17 +184,7 @@ def validate_credentials(request: Request, payload=Body(...)):
 
 
 
-def get_secret(requested_password):
-    if requested_password == 'db_connection':
-        secret = db_connection
-    elif requested_password == 'async_db_connection':
-        secret = async_db_connection
-    elif requested_password == 'encryption_password':
-        secret = encryption_password
-    else:
-        secret = None
-    response = {'response': 'SUCCESS', 'secret': secret}
-    return response
+
 
 
 @app.post("/get_secret", dependencies=[Depends(RateLimiter(times=10, seconds=60))])
@@ -198,7 +203,6 @@ def provide_secrete(request: Request, payload=Body(...)):
         return
     elif not check_active():
         print(f'IP Address {client_host} attempted to get secret.  OTP has not been provided.')
-        set_fail()
         return {'response': 'Authorized user must provide OTP'}
     requested_password = payload.get('requested_password', None)
     if requested_password == None:

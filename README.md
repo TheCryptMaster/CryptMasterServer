@@ -74,3 +74,21 @@ sudo supervisorctl status
 sudo supervisorctl stop crypt_keeper
 sudo supervisorctl start crypt_keeper
 sudo supervisorctl restart crypt_keeper
+
+
+## API Functions
+https://your-api-name.your-domain.com:5010/enable_api
+
+Payload = 
+{
+ "user_name": "user@your-domain.com",
+ "otp": 1234567
+}
+
+
+https://your-api-name.your-domain.com:5010/get_secret
+
+Payload = 
+{
+ "requested_password": "password-you-need-to-retrieve"
+}
