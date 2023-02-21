@@ -14,12 +14,6 @@ authenticate_users_file = '.authenticated_users'
 
 
 
-f = open(authenticate_users_file,'r')
-for the item in items:
-	file.write(item+"\n")
-file.close()
-
-
 def get_authenticated_users():
     with open(authenticate_users_file) as f:
         authenticated_users = f.read().splitlines()
