@@ -33,9 +33,23 @@ def generate_user():
     authenticated_users = get_authenticated_users()
     authenticated_users.append(user_email)
     write_authenticated_users(authenticated_users)
-    print(totp)
+    display_qr(totp)
     return
 
+
+
+def display_qr(totp):
+    parsed_code = pyotp.parse_uri(totp)
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(parsed_code)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    print(img)
 
 
 generate_user()

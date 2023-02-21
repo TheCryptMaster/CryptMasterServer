@@ -25,7 +25,28 @@ app = FastAPI()
 db_connection = os.getenv('db_connection')
 async_db_connection = os.getenv('async_db_connection')
 encryption_password = os.getenv('encryption_password')
+pyotp_seed = os.getenv('pyotp_seed')
 
+
+def get_authenticated_users():
+    with open(authenticate_users_file) as f:
+        authenticated_users = f.read().splitlines()
+    return authenticated_users
+
+
+
+def check_password(user, one_time_pass):
+    authenticated_users = get_authenticated_users()
+    totp = pyotp.totp.TOTP(pyotp_seed).provisioning_uri(name=user, issuer_name=pyotp_issuer)
+    if user not in authenticated_users:
+        response = {'response': 'Invalid User'}
+    elif totp != one_time_pass:
+        response = {'response': 'Invalid One Time Passcode'}
+    else:
+        active_until = set_active_until()
+        string_time = active_until.strftime("%m-%d-%Y_%Hh%Mm%Ss")
+        response = {'response': 'Success', 'active_until': string_time}
+    return response
 
 
 
@@ -42,7 +63,7 @@ def check_active():
 def set_active_until():
     global active_until
     active_until = datetime.now() + timedelta(minutes=keep_active)
-    return
+    return active_until
 
 
 
