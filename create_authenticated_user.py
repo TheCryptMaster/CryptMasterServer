@@ -5,6 +5,7 @@ import pyotp
 import os
 from dotenv import load_dotenv
 import qrcode
+import io
 
 load_dotenv()
 
@@ -40,18 +41,18 @@ def generate_user():
 
 
 
+
+
+
 def display_qr(totp):
     parsed_code = pyotp.parse_uri(totp)
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=10,
-        border=4,
-    )
+    qr = qrcode.QRCode()
     qr.add_data(parsed_code)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    print(img)
+    f = io.StringIO()
+    qr.print_ascii(out=f)
+    f.seek(0)
+    print(f.read())
+    return
 
 
 generate_user()
