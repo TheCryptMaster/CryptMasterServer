@@ -103,6 +103,10 @@ def add_server():
     if server not in authenticated_servers:
         authenticated_servers.append(server)
         write_authenticated_servers(authenticated_servers)
+    else:
+        print('\n\nThat server already exists.\n\n')
+        print('Returning to main menu in 5 seconds.')
+        sleep(5)
     clear()
     return
 
