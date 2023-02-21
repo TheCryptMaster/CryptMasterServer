@@ -64,6 +64,7 @@ def generate_user():
         print('That user already exists.  Use remove user first to re-create OTP Seed.')
         print('Returning to main menu in 5 seconds.')
         sleep(5)
+        clear()
     return
 
 
