@@ -47,7 +47,7 @@ def generate_user():
 def display_qr(totp):
     parsed_code = pyotp.parse_uri(totp)
     qr = qrcode.QRCode()
-    qr.add_data(parsed_code)
+    qr.add_data(parsed_code.provisioning_uri())
     f = io.StringIO()
     qr.print_ascii(out=f)
     f.seek(0)
