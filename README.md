@@ -36,7 +36,12 @@ Set your one time password seed in the env file.  You can use your own password,
 import pyotp
 pyotp.random_base32()
 
+
+Remove all remote access to the server running this service.  Secure firewall to only allow your api port to this server.  Configuring your network is beyond the scope of these instructions.
+
 WARNING!!!! You will be storing your actual passwords in the .env file.  It is imperative that there is not any remote command prompt left open to this server.
+
+
 
 ## Adding or Removing Users and Servers
 
