@@ -26,6 +26,10 @@ db_connection = os.getenv('db_connection')
 async_db_connection = os.getenv('async_db_connection')
 encryption_password = os.getenv('encryption_password')
 pyotp_seed = os.getenv('pyotp_seed')
+pyotp_issuer = os.getenv('pyotp_issuer')
+authenticate_users_file = '.authenticated_users'
+
+
 
 
 def get_authenticated_users():

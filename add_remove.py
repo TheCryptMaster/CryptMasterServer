@@ -40,8 +40,15 @@ def generate_user():
     return
 
 
+def remove_user():
+    pass
 
 
+def add_server():
+    pass
+
+def remove_server():
+    pass
 
 
 def display_qr(totp):
@@ -55,4 +62,26 @@ def display_qr(totp):
     return
 
 
-generate_user()
+
+def get_request_type():
+    request_text = 'Welcome to the Crypt Keeper\n\nWhich action would you like to perform?:\n\n'
+                         '1) Add Authenticated User\n2) Remove Authenticated User\n'
+                         '3) Add Allowed Server\n4) Remove Allowed Server\nq) Quit\n\n'
+    os.system('cls')
+    while True:
+        request_type = input(request_text)
+        if request_type.lower() == '1':
+            generate_user()
+        elif request_type.lower() == '2':
+            remove_user()
+        elif request_type.lower() == '3':
+            add_server()
+        elif request_type.lower() == '4':
+            remove_server()
+        elif request_type.lower() == 'q':
+            break
+        os.system('cls')
+        print('That is not a valid option.  Please try again:\n\n')
+
+
+get_request_type()
