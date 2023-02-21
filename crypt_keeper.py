@@ -2,7 +2,7 @@
 
 import pyotp
 from datetime import datetime, timedelta
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
