@@ -1,6 +1,6 @@
-user_list = ['authorized_user1', 'authorized_user2']
-
-otp_seed = 'your_one_time_password_seed'
+pyotp_seed = 'your_one_time_password_seed'
+pyotp_issuer = 'Your Crypt Keeper'
 
 your_sesnsitve_pass_1 = 'a_very_important_password'
 your_sesnsitve_pass_2 = 'another_very_important_password'
+

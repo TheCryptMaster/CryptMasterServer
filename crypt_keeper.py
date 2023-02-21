@@ -2,6 +2,7 @@
 
 import pyotp
 import time
+from datetime import datetime, timedelta
 from fastapi import FastAPI
 from fastapi_limiter import FastAPILimiter
 import redis.asyncio as redis
@@ -28,9 +29,20 @@ encryption_password = os.getenv('encryption_password')
 
 
 
+keep_active = 5 #minutes
+
+active_until = datetime.now()
 
 
+def check_active():
+    current_time = datetime.now()
+    return current_time < active_until
 
+
+def set_active_until():
+    global active_until
+    active_until = datetime.now() + timedelta(minutes=keep_active)
+    return
 
 
 
