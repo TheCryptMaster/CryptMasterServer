@@ -76,6 +76,7 @@ def remove_user():
             print('No users currently authorized.  Use add user to add an authenticated user.')
             print('Returning to main menu in 5 seconds.')
             sleep(5)
+            clear()
             return
         display_list = 'Please select the user to remove below\n'
         for user in authenticated_users:
@@ -113,6 +114,7 @@ def remove_server():
             print('No servers currently authorized.  Use add server to add an authenticated server.')
             print('Returning to main menu in 5 seconds.')
             sleep(5)
+            clear()
             return
         display_list = 'Please select the server to remove below\n'
         for server in authenticated_servers:
