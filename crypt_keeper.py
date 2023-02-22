@@ -93,7 +93,7 @@ def check_password(user, one_time_pass, client_host):
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
         return
-    elif str(one_time_pass) != totp.now():
+    elif one_time_pass != totp.now():
         print(f'User: {user} at IP Address {client_host} attempted to open api with an invalid OTP')
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
@@ -178,7 +178,7 @@ def validate_credentials(request: Request, payload=Body(...)):
         raise HTTPException(status_code=403, detail="API Disabled")
         return
     user = payload.get('user_name', None)
-    one_time_pass = payload.get('otp', None)
+    one_time_pass = str(payload.get('otp', None))
     if user == None or one_time_pass == None:
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")

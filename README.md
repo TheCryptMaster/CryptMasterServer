@@ -82,7 +82,7 @@ https://your-api-name.your-domain.com:5010/enable_api
 Payload = 
 {
  "user_name": "user@your-domain.com",
- "otp": 1234567
+ "otp": '1234567'
 }
 
 
