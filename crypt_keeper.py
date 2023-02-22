@@ -28,7 +28,7 @@ active_until = datetime.now()
 keep_active = 5 #minutes
 disable_time = 60 #minutes
 
-
+totp_window = int(os.getenv('totp_window'))
 db_connection = os.getenv('db_connection')
 async_db_connection = os.getenv('async_db_connection')
 encryption_password = os.getenv('encryption_password')
@@ -93,7 +93,7 @@ def check_password(user, one_time_pass, client_host):
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
         return
-    elif one_time_pass != totp.now():
+    elif not totp.verify(otp=one_time_pass, valid_window=totp_window):
         print(f'User: {user} at IP Address {client_host} attempted to open api with an invalid OTP')
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
