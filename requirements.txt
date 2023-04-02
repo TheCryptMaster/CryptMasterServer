@@ -3,6 +3,6 @@ fastapi==0.92.0
 python-dotenv==0.21.1
 uvicorn==0.20.0
 qrcode==7.4.2
-redis==4.3.6
+redis==4.4.4
 fastapi_limiter==0.1.5
 #sudo apt-get install redis-server supervisor certbot
