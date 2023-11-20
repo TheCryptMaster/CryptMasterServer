@@ -24,10 +24,9 @@ def get_authenticated_users():
 
 
 def write_authenticated_users(authenticated_users):
-    f = open(authenticate_users_file, 'w+')
-    for authenticated_user in authenticated_users:
-        f.write(authenticated_user + "\n")
-    f.close()
+    with open(authenticate_users_file, 'w+') as f:
+        for authenticated_user in authenticated_users:
+            f.write(authenticated_user + "\n")
     return
 
 
@@ -38,10 +37,9 @@ def get_authenticated_servers():
 
 
 def write_authenticated_servers(authenticated_servers):
-    f = open(authenticated_servers_file, 'w+')
-    for authenticated_server in authenticated_servers:
-        f.write(authenticated_server + "\n")
-    f.close()
+    with open(authenticated_servers_file, 'w+') as f:
+        for authenticated_server in authenticated_servers:
+            f.write(authenticated_server + "\n")
     return
 
 
@@ -59,12 +57,11 @@ def generate_user():
         while True:
             input('\n\nAdd your code to your authenticator app now.  Press Enter to continue.')
             break
-        clear()
     else:
         print('\n\nThat user already exists.  Use remove user first to re-create OTP Seed.')
         print('\nReturning to main menu in 5 seconds.')
         sleep(5)
-        clear()
+    clear()
     return
 
 
@@ -118,7 +115,6 @@ def add_server():
 def remove_server():
     clear()
     while True:
-        i = 1
         authenticated_servers = get_authenticated_servers()
         if len(authenticated_servers) == 0:
             print('No servers currently authorized.  Use add server to add an authenticated server.')
@@ -127,9 +123,8 @@ def remove_server():
             clear()
             return
         display_list = 'Please select the server to remove below\n'
-        for server in authenticated_servers:
+        for i, server in enumerate(authenticated_servers, start=1):
             display_list += f'\n{i}) - {server}'
-            i += 1
         display_list += '\nq) Quit/Cancel\n\n'
         selected_server = input(display_list)
         if selected_server.isdigit():
@@ -192,12 +187,7 @@ def get_request_type():
 
 def clear():
     # for windows
-    if os.name == 'nt':
-        _ = os.system('cls')
-
-    # for mac and linux(here, os.name is 'posix')
-    else:
-        _ = os.system('clear')
+    _ = os.system('cls') if os.name == 'nt' else os.system('clear')
 
 
 get_request_type()

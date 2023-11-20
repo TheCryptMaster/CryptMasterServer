@@ -77,7 +77,6 @@ def check_password(user, one_time_pass, client_host):
     if len(users) == 0:
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
-        return
     authenticated_users = {}
     i = 0
     while i < len(users):
@@ -92,7 +91,6 @@ def check_password(user, one_time_pass, client_host):
         print(f'User: {user} at IP Address {client_host} attempted to open api and is not an authorized user')
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
-        return
     elif not totp.verify(otp=one_time_pass, valid_window=totp_window):
         print(f'User: {user} at IP Address {client_host} attempted to open api with an invalid OTP')
         set_fail()
@@ -108,18 +106,17 @@ def check_password(user, one_time_pass, client_host):
 
 
 def get_secret(requested_password):
-    if requested_password == 'test_password':
-        secret = test_password
+    if requested_password == 'async_db_connection':
+        secret = async_db_connection
     elif requested_password == 'db_connection':
         secret = db_connection
-    elif requested_password == 'async_db_connection':
-        secret = async_db_connection
     elif requested_password == 'encryption_password':
         secret = encryption_password
+    elif requested_password == 'test_password':
+        secret = test_password
     else:
         secret = None
-    response = {'response': 'SUCCESS', 'secret': secret}
-    return response
+    return {'response': 'SUCCESS', 'secret': secret}
 
 
 def check_fail_disable():
@@ -156,8 +153,7 @@ def set_active_until():
 
 
 def get_web_user_ip_address(request):
-    client_host = request.client.host
-    return client_host
+    return request.client.host
 
 
 
@@ -176,14 +172,12 @@ def validate_credentials(request: Request, payload=Body(...)):
         print(f'IP Address {client_host} attempted to get secret while system is disabled.')
         set_fail()
         raise HTTPException(status_code=403, detail="API Disabled")
-        return
     user = payload.get('user_name', None)
     one_time_pass = str(payload.get('otp', None))
-    if user == None or one_time_pass == None:
+    if user is None or one_time_pass is None:
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
-    response = check_password(user, one_time_pass, client_host)
-    return response
+    return check_password(user, one_time_pass, client_host)
 
 
 
@@ -198,20 +192,17 @@ def provide_secrete(request: Request, payload=Body(...)):
         print(f'IP Address {client_host} attempted to get secret, and is not an authorized client')
         set_fail()
         raise HTTPException(status_code=403, detail="ACCESS DENIED")
-        return
     elif check_fail_disable():
         print(f'IP Address {client_host} attempted to get secret while system is disabled.')
         set_fail()
         raise HTTPException(status_code=403, detail="API Disabled")
-        return
     elif not check_active():
         print(f'IP Address {client_host} attempted to get secret.  OTP has not been provided.')
         return {'response': 'Authorized user must provide OTP'}
     requested_password = payload.get('requested_password', None)
-    if requested_password == None:
+    if requested_password is None:
         return {'response': 'No secret requested'}
-    response = get_secret(requested_password)
-    return response
+    return get_secret(requested_password)
 
 
 
