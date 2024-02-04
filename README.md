@@ -1,6 +1,13 @@
 # crypt_keeper
 A secure API for controlling keys to sensitive databases
 
+
+## Recommended system architecture
+Dedicated hardware is paramount to providing physical security.  It is recommended that you create a separate subnet exclusively for your crypt keeper, and use proper firewall rules to only allow necessary access to the API Port.  If you do allow any remote access to your key crypt, it should only be allowed at your firewall for the duration of your administrative session, and then access should be immediately removed.  You can set up Crypt Keeper on any reasonable device.  Best recommendation is to use a mini pc.  Dell Micro and Intel Nuc are both great picks.  You should install VMWare Esxi 7 as the base operating system.  7 supports a wide range of hardware, and has fewer restrictions than 8.  ESXi is free.  If your server has a small amount of storage, you can use the boot config file in the vmware_boot_config directory to install ESXi in the smallest footprint.  The minimum hard drive size is 128gb under these conditions.  With ESXi installed, create a single virtual machine for the Crypt Keeper with the leftover available resources.
+
+With the architecture out of the way, you should use the latest version of Ubuntu as the base OS.  During installation it is recommended that you add encryption to the LVM.  If you installed this as a virtual machine, you should still be able to remote in to your server, and gain console access in order to boot your crypt keeper.  You will need to enter the encryption password at bootup.  As previously stated, always close off remote access to your key crypt (and hypervisor if you are using one) when you are done administering your system.
+
+
 ## SETUP
 Create two empty files:
 

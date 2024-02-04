@@ -1,8 +1,13 @@
-pyotp==2.8.0
-fastapi==0.95.2
+fastapi==0.109.1
+fastapi_limiter==0.1.6
+numpy==1.26.3
+pandas==2.2.0
+pyarrow==15.0.0
 python-dotenv==1.0.0
-uvicorn==0.22.0
+pyotp==2.9.0
 qrcode==7.4.2
-redis==4.5.5
-fastapi_limiter==0.1.5
+redis==5.0.1
+uvicorn==0.27.0
+
+
 #sudo apt-get install redis-server supervisor certbot
