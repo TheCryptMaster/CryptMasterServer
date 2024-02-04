@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-dev_db_file.db
+app_db/dev_db_file.db
 
 
 *.pem
