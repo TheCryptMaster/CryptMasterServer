@@ -39,3 +39,7 @@ def generate_word_list(ENTROPY):
         else:
             words_extracted += ' ' + bip39_words[word_index]
     return words_extracted
+
+entropy = generate_entropy()
+print(entropy)
+print(generate_word_list(entropy))
