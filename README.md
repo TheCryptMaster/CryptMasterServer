@@ -1,5 +1,7 @@
-# crypt_keeper
-A secure API for controlling keys to sensitive databases
+# Crypt Master Server
+A Secure Server for controlling keys to sensitive databases
+
+The Crypt Master Client is available here: https://github.com/TheCryptMaster/CryptMaster
 
 
 ## Recommended system architecture
@@ -18,9 +20,26 @@ Install requirements
 
 pip install -r requirements.txt
 
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+sudo apt-get install redis-server supervisor certbot gnupg2 wget vim postgresql-16 postgresql-contrib-16 
+sudo systemctl enable postgresql
+sudo systemctl start postgresql
 sudo apt update
 sudo apt full-upgrade
-sudo apt-get install redis-server supervisor certbot
+
+sudo sed -i '/^host/s/ident/md5/' /etc/postgresql/16/main/pg_hba.conf
+sudo sed -i '/^local/s/peer/trust/' /etc/postgresql/16/main/pg_hba.conf
+echo "host all all 0.0.0.0/0 md5" | sudo tee -a /etc/postgresql/16/main/pg_hba.conf
+
+
+## Create DB User Account with temporary password
+sudo -u postgres createuser --superuser cryptmaster -P
+
+## Create Empty DB
+sudo -u postgres createdb cryptmaster_db --owner=cryptmaster
+
+
 
 create certificate:
 sudo certbot certonly -d your-api-name.your-domain.com
