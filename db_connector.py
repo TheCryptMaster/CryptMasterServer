@@ -1,10 +1,12 @@
 import random
+import uuid
 
 
 from seed_manager import ENTROPY
 
 def get_db_password():
-    entropy = ENTROPY + 'cryptmasterdbpass'
+    system_id = uuid.getnode()
+    entropy = ENTROPY + 'cryptmasterdbpass' + str(system_id)
     random.seed(entropy)
     ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     db_pass = ''
