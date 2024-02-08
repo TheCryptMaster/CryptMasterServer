@@ -124,5 +124,10 @@ def test_user(seed_phrase):
 
 
 
-check_entropy()
+def run_seed_manager():
+    global ENTROPY
+    check_entropy()
+    with open(entropy_file, 'r') as f:
+        ENTROPY = f.read()
+
 
