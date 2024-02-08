@@ -2,7 +2,7 @@ import os
 import random
 import sys
 
-
+from PypeDreams import pype_dreamer
 from seed_tools import generate_seed, get_entropy
 
 
@@ -20,15 +20,18 @@ def clear():
         _ = os.system('clear')
 
 
+def get_option():
+    # For some reason it wont stop on this input, so am moving to its own function
+    option = input('There is currently no seed generated for this server.\nIf you have an existing seed, you can restore it now.\n\nPlease pick an option.\n1) Create new seed\n2) Restore from seed phrase\n')
+    return option
+
 
 def check_entropy():
     if os.path.isfile(entropy_file):
         return
-    pick_option = input('There is currently no seed generated for this server.\n'
-                            'If you have an existing seed, you can restore it now.\n'
-                            '\nPlease pick an option.\n1) Create new seed\n2) Restore from seed phrase\n')
-    if pick_option == str('2'):
-        print('to do')
+    pick_option = get_option()
+    if pick_option == '2':
+        restore_seed()
         return
     entropy, seed_phrase = generate_seed()
     while True:
@@ -46,12 +49,10 @@ def check_entropy():
     seed_phrase = seed_phrase.split()
     seed_text = "\n\nYou're new seed phrase is:\n\n"
     pass_check = []
-    i = 1
-    for word in seed_phrase:
+    for i, word in enumerate(seed_phrase, start=1):
         seed_text += f'{i}) {word}, '
         pass_check.append([i, word])
-        i += 1
-    seed_text = seed_text[:-2]
+    seed_text = seed_text[:-2] + f'\n\nYour Confirmation Phrase is {get_safety_words(entropy)}'
     print(seed_text)
     attempts = 0
     while True:
@@ -62,13 +63,43 @@ def check_entropy():
             attempts += 1
             if test_user(pass_check):
                 break
+    write_entropy_file(entropy)
+
+
+def get_safety_words(entropy):
+    safety_phrase = pype_dreamer(str(entropy), style='titlecase')
+    return safety_phrase
+
+
+def write_entropy_file(entropy):
     with open(entropy_file, 'w+') as f:
         f.write(str(entropy))
 
 
+def convert_list_to_passphrase(word_list):
+    passhrase = ''
+    for word in word_list:
+        passhrase += f'{word} '
+    return passhrase[:-1]
+
 
 def restore_seed():
-    message = 'Restore your seed phrase'
+    clear()
+    word_list = []
+    print('\nRestore your seed phrase\n')
+    i = 1
+    while len(word_list) < 24:
+        word = input(f'Enter word #{i}: ')
+        word_list.append(word.lower())
+        i += 1
+    seed = convert_list_to_passphrase(word_list)
+    entropy = get_entropy(seed)
+    safety_phrase = get_safety_words(entropy)
+    print(f'Your Seed Safety Phrase is {safety_phrase}')
+    question = input('\nIs that correct?: ')
+    if question.lower()[:1] == 'y':
+        write_entropy_file(entropy)
+
 
 
 
