@@ -41,9 +41,9 @@ api_port = int(os.getenv('api_port'))
 
 
 origins = [
-    "https://api.themorphium.io:8095",
+    "https://secure-api.themorphium.io:2053",
     "http://localhost",
-    "http://localhost:8095"
+    "http://localhost:2053"
 ]
 
 app.add_middleware(

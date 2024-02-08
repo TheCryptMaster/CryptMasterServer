@@ -103,7 +103,7 @@ sudo supervisorctl restart crypt_keeper
 
 
 ## API Functions
-https://your-api-name.your-domain.com:5010/enable_api
+https://your-api-name.your-domain.com:2053/enable_api
 
 Payload = 
 {
@@ -112,7 +112,7 @@ Payload =
 }
 
 
-https://your-api-name.your-domain.com:5010/get_secret
+https://your-api-name.your-domain.com:2053/get_secret
 
 Payload = 
 {
