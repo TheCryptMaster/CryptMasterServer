@@ -67,6 +67,12 @@ def check_entropy():
 
 
 
+def restore_seed():
+    message = 'Restore your seed phrase'
+
+
+
+
 
 def test_user(seed_phrase):
     clear()
