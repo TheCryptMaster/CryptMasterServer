@@ -131,3 +131,4 @@ def run_seed_manager():
         ENTROPY = f.read()
 
 
+run_seed_manager()
