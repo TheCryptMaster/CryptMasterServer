@@ -5,7 +5,7 @@ from seed_manager import ENTROPY
 
 
 
-def generate_random_secret(length=32):
+def generate_secret(length=32):
     entropy = ENTROPY + str(datetime.now())
     random.seed(entropy)
     ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
