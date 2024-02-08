@@ -22,16 +22,17 @@ def clear():
 
 
 def check_entropy():
-    if not os.path.isfile(entropy_file):
-        pick_option = input('There is currently no seed generated for this server.\n'
+    if os.path.isfile(entropy_file):
+        return
+    pick_option = input('There is currently no seed generated for this server.\n'
                             'If you have an existing seed, you can restore it now.\n'
                             '\nPlease pick an option.\n1) Create new seed\n2) Restore from seed phrase\n')
-        if pick_option == str('2'):
-            pass
-        else:
-            entropy, seed_phrase = generate_seed()
-            while True:
-                prepare_user = input(
+    if pick_option == str('2'):
+        print('to do')
+        return
+    entropy, seed_phrase = generate_seed()
+    while True:
+        prepare_user = input(
                     '\nYou have chosen to create a new seed.  It is imperative that you protect it as if all of your keys depend on it, BECAUSE THEY DO!!!\n\n'
                     'Hand write down your seed phrase.\n'
                     'DO NOT TAKE A PICTURE OF IT\n'
@@ -40,29 +41,29 @@ def check_entropy():
                     'DO NOT GIVE IT THAT RANDO THAT SLID IN TO YOUR DMS\n'
                     'IF YOUR SEED IS LOST, NO ONE CAN HELP YOU GET IT BACK\n'
                     '\nDo you understand? ')
-                if prepare_user.lower()[0:1] == 'y':
-                    break
-            seed_phrase = seed_phrase.split()
-            seed_text = "\n\nYou're new seed phrase is:\n\n"
-            pass_check = []
-            i = 1
-            for word in seed_phrase:
-                seed_text += f'{i}) {word}, '
-                pass_check.append([i, word])
-                i += 1
-            seed_text = seed_text[:-2]
-            print(seed_text)
-            attempts = 0
-            while True:
-                if attempts > 2:
-                    sys.exit()
-                ready = input('\n\nWhen you have finished writing down your passphrase, press "C" to continue\n')
-                if ready.lower() == 'c':
-                    attempts += 1
-                    if test_user(pass_check):
-                        break
-            with open(entropy_file, 'w+') as f:
-                f.write(str(entropy))
+        if prepare_user.lower()[:1] == 'y':
+            break
+    seed_phrase = seed_phrase.split()
+    seed_text = "\n\nYou're new seed phrase is:\n\n"
+    pass_check = []
+    i = 1
+    for word in seed_phrase:
+        seed_text += f'{i}) {word}, '
+        pass_check.append([i, word])
+        i += 1
+    seed_text = seed_text[:-2]
+    print(seed_text)
+    attempts = 0
+    while True:
+        if attempts > 2:
+            sys.exit()
+        ready = input('\n\nWhen you have finished writing down your passphrase, press "C" to continue\n')
+        if ready.lower() == 'c':
+            attempts += 1
+            if test_user(pass_check):
+                break
+    with open(entropy_file, 'w+') as f:
+        f.write(str(entropy))
 
 
 
