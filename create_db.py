@@ -18,7 +18,6 @@ conn = connect(
         user=DB_USER,
         password=DB_PASSWORD,
         database=DB_NAME,
-        autocommit=True
     )
 
 # Create a cursor object to execute SQL queries
