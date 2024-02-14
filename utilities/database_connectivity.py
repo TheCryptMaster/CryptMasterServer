@@ -1,3 +1,4 @@
+import os
 import pandas.io.sql as psql
 import sys
 
@@ -15,7 +16,7 @@ DB_NAME = 'cryptmaster_db'
 
 db_uri = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 
-
+LATEST_VERSION = '2.0.0'
 
 def execute_db(query):
     engine = create_engine(db_uri, pool_size=10, max_overflow=20)
@@ -28,6 +29,21 @@ def query_db(query):
     response = psql.read_sql_query(query, con=engine)
     engine.dispose()
     return response
+
+
+
+def get_version():
+    needs_update, version = False
+    version_file = '.version'
+    if not os.path.isfile(version_file):
+        version = '0.0.1'
+        with open(version_file, 'w+') as f:
+            f.write(version)
+    with open(version_file, 'r') as f:
+        version = f.readline()
+    if version != LATEST_VERSION:
+        needs_update = True
+    return needs_update, version
 
 
 def test_db_con():
@@ -46,7 +62,13 @@ def test_db_con():
         psql.read_sql_query("SELECT * from cm_control", con=engine)
     except:
         print('Empty DB Exists.  Creating new DB.')
-        #import prepare_db
+        # from prepare_db import fresh_db
+        # fresh_db()
+    needs_update, version = get_version()
+    if needs_update:
+        print('Updating DB')
+        # from prepare_db import patch_db
+        # patch_db(version)
 
 
 
