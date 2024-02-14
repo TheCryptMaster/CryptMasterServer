@@ -20,6 +20,7 @@ conn = connect(
         database=DB_NAME,
     )
 
+conn.autocommit = True
 # Create a cursor object to execute SQL queries
 cursor = conn.cursor()
 
