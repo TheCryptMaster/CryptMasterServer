@@ -1,6 +1,6 @@
 from getpass import getpass
 from psycopg2 import connect, sql
-from secret_generator import get_db_secret
+from utilities.secret_generator import get_db_secret
 
 
 # Database connection parameters

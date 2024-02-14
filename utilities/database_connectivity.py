@@ -1,8 +1,7 @@
-import os
 import pandas.io.sql as psql
 import sys
 
-from secret_generator import get_db_secret
+from utilities.secret_generator import get_db_secret
 from sqlalchemy import create_engine, text
 
 
@@ -33,10 +32,22 @@ def query_db(query):
 
 def test_db_con():
     try:
-        query_db("SELECT user_name from pa_support_act")
+        engine = create_engine(db_uri)
     except:
-        print('Unable to connect to database.  Exiting!\n')
-        sys.exit()
+        print('Unable to connect to DB.  Trying to create new DB.')
+        try:
+            import create_db
+            engine = create_engine(db_uri)
+        except:
+            print('DB Error')
+            sys.exit()
+    try:
+        psql.read_sql_query("SELECT * from cm_control", con=engine)
+    except:
+        print('Empty DB Exists.  Creating new DB.')
+        #import prepare_db
+
+
 
 
 test_db_con()
