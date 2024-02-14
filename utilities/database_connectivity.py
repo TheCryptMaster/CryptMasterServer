@@ -33,16 +33,13 @@ def query_db(query):
 
 
 def get_version():
-    needs_update, version = False
-    version_file = '.version'
-    if not os.path.isfile(version_file):
-        version = '0.0.1'
-        with open(version_file, 'w+') as f:
-            f.write(version)
-    with open(version_file, 'r') as f:
-        version = f.readline()
-    if version != LATEST_VERSION:
-        needs_update = True
+    needs_update = False
+    version_query = query_db(f"SELECT version_active FROM cm_control ORDER BY ID DESC LIMIT 1")
+    if len(version_query) == 0:
+        needs_update = False
+        version = None
+    else:
+        version = version_query['version_active'][0]
     return needs_update, version
 
 
