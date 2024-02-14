@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import pyotp
+
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from fastapi import FastAPI, Depends, Body, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,8 +20,17 @@ import uvicorn
 
 load_dotenv()
 
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    limiter = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
+    await FastAPILimiter.init(limiter)
+
+
+
 utc = pytz.UTC
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 authenticate_users_file = '.authenticated_users'
 authenticated_servers_file = '.authenticated_servers'
 fail_count = 0
@@ -162,10 +173,10 @@ def get_web_user_ip_address(request):
 
 
 
-@app.on_event("startup")
-async def startup():
-    limiter = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
-    await FastAPILimiter.init(limiter)
+#@app.on_event("startup")
+#async def startup():
+#    limiter = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
+#    await FastAPILimiter.init(limiter)
 
 
 
