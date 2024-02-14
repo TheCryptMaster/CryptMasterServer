@@ -31,8 +31,9 @@ def query_db(query):
 
 
 def test_db_con():
+    engine = create_engine(db_uri)
     try:
-        engine = create_engine(db_uri)
+        engine.connect()
     except:
         print('Unable to connect to DB.  Trying to create new DB.')
         try:
