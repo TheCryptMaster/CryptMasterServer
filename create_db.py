@@ -1,3 +1,4 @@
+from getpass import getpass
 from psycopg2 import connect, sql
 from secret_generator import get_db_secret
 
@@ -5,9 +6,9 @@ from secret_generator import get_db_secret
 # Database connection parameters
 DB_HOST = "localhost"
 DB_PORT = 5432
-DB_USER = 'cryptmaster'
-DB_PASSWORD = get_db_secret()
-DB_NAME = 'cryptmaster_db'
+DB_USER = 'postgres'
+DB_PASSWORD = getpass('Enter Sudo Secret: ')
+DB_NAME = 'postgres'
 
 # Establish a connection to the PostgreSQL server
 conn = connect(
