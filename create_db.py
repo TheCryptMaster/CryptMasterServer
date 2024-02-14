@@ -42,8 +42,8 @@ if not existing_db_check:
 else:
     print(f"Database 'cryptmaster_db' already exists.")
 
-cursor.execute(sql.SQL("DROP DATABASE IF EXISTS initial_db_user_db"))
-cursor.execute(sql.SQL("DROP USER IF EXISTS initial_db_user"))
+#cursor.execute(sql.SQL("DROP DATABASE IF EXISTS initial_db_user_db"))
+#cursor.execute(sql.SQL("DROP USER IF EXISTS initial_db_user"))
 
 
 conn.commit()
