@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from fastapi import FastAPI, Depends, Body, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_limiter import FastAPILimiter
+#from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 import redis.asyncio as redis
 import os
@@ -22,15 +22,16 @@ load_dotenv()
 
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    limiter = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
-    await FastAPILimiter.init(limiter)
+#@asynccontextmanager
+#async def lifespan(app: FastAPI):
+#    limiter = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
+#    await FastAPILimiter.init(limiter)
 
 
 
 utc = pytz.UTC
-app = FastAPI(lifespan=lifespan)
+#app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 authenticate_users_file = '.authenticated_users'
 authenticated_servers_file = '.authenticated_servers'
 fail_count = 0
