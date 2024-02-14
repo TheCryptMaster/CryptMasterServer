@@ -37,10 +37,10 @@ echo "host all all 0.0.0.0/0 md5" | sudo tee -a /etc/postgresql/16/main/pg_hba.c
 
 
 ## Create DB User Account with temporary password
-sudo -u postgres createuser --superuser cryptmaster -P
+sudo -u postgres createuser --superuser initial_db_user -P
 
 ## Create Empty DB
-sudo -u postgres createdb cryptmaster_db --owner=cryptmaster
+sudo -u postgres createdb initial_db_user_db --owner=initial_db_user
 
 
 
