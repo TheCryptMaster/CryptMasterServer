@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from fastapi import FastAPI, Depends, Body, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-#from fastapi_limiter import FastAPILimiter
+from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 import redis.asyncio as redis
 import os
@@ -174,10 +174,10 @@ def get_web_user_ip_address(request):
 
 
 
-#@app.on_event("startup")
-#async def startup():
-#    limiter = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
-#    await FastAPILimiter.init(limiter)
+@app.on_event("startup")
+async def startup():
+    limiter = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
+    await FastAPILimiter.init(limiter)
 
 
 
