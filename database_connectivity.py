@@ -2,18 +2,19 @@ import os
 import pandas.io.sql as psql
 import sys
 
-from sqlalchemy import create_engine
-
-dev_db_file = '/app_db/dev_db_file.db'
-db_file = '/app_db/db_file.db'
+from secret_generator import get_db_secret
+from sqlalchemy import create_engine, text
 
 
-if os.path.isfile(f'.{dev_db_file}'):
-    db_file = dev_db_file
 
+# Database connection parameters
+DB_HOST = "localhost"
+DB_PORT = 5432
+DB_USER = 'cryptmaster'
+DB_PASSWORD = get_db_secret()
+DB_NAME = 'cryptmaster_db'
 
-db_uri = f'sqlite://{db_file}'
-
+db_uri = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 
 
 

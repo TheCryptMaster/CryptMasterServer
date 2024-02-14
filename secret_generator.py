@@ -15,3 +15,8 @@ def generate_secret(passphrase=None, length=32):
     for i in range(length):
         random_secret += (random.choice(ALPHABET))
     return random_secret
+
+
+
+def get_db_secret():
+    return generate_secret('CryptMaster')

@@ -1,48 +1,58 @@
-import psycopg2
-from psycopg2 import sql
+from psycopg2 import connect, sql
+from secret_generator import get_db_secret
+
 
 # Database connection parameters
-DB_HOST = "your_postgres_host"
-DB_PORT = "your_postgres_port"
-DB_USER = "your_admin_user"
-DB_PASSWORD = "your_admin_password"
-NEW_USER = "new_user"
-NEW_USER_PASSWORD = "your_user_password"
-NEW_DB = "new_database"
+DB_HOST = "localhost"
+DB_PORT = 5432
+DB_USER = 'cryptmaster'
+DB_PASSWORD = get_db_secret()
+DB_NAME = 'cryptmaster_db'
 
 # Establish a connection to the PostgreSQL server
-conn = psycopg2.connect(
+conn = connect(
     host=DB_HOST,
     port=DB_PORT,
     user=DB_USER,
     password=DB_PASSWORD,
-    database="postgres"  # Connect to the default 'postgres' database for administrative tasks
+    database=DB_NAME
 )
 
+
 # Create a cursor object to execute SQL queries
-cursor = conn.cursor()
+def check_user_exists():
+    cursor = conn.cursor()
+    # Check if the user exists
+    cursor.execute(sql.SQL("SELECT 1 FROM pg_roles WHERE rolname='cryptmaster'"))
+    existing_user_check = cursor.fetchone()
+    cursor
+    if not existing_user_check:
+        print(f"Creating user: 'cryptmaster'")
+        cursor.execute(sql.SQL(f"CREATE USER 'cryptmaster' WITH PASSWORD '{get_db_secret()}'"))
+    else:
+        print(f"User 'cryptmaster' already exists.")
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return
 
-# Check if the user exists
-cursor.execute(sql.SQL("SELECT 1 FROM pg_roles WHERE rolname=%s"), [NEW_USER])
-existing_user_check = cursor.fetchone()
-if not existing_user_check:
-    print(f"Creating user: {NEW_USER}")
-    cursor.execute(sql.SQL("CREATE USER {} WITH PASSWORD %s").format(sql.Identifier(NEW_USER)), [NEW_USER_PASSWORD])
-else:
-    print(f"User {NEW_USER} already exists.")
 
-# Check if the database exists
-cursor.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname=%s"), [NEW_DB])
-existing_db_check = cursor.fetchone()
-if not existing_db_check:
-    print(f"Creating database: {NEW_DB}")
-    cursor.execute(sql.SQL("CREATE DATABASE {} WITH OWNER = {}").format(
-        sql.Identifier(NEW_DB), sql.Identifier(NEW_USER)
-    ))
-else:
-    print(f"Database {NEW_DB} already exists.")
+def check_db_exists():
+    cursor = conn.cursor()
+    # Check if the database exists
+    cursor.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname='cryptmaster_db'"))
+    existing_db_check = cursor.fetchone()
+    if not existing_db_check:
+        print(f"Creating database: 'cryptmaster_db'")
+        cursor.execute(sql.SQL("CREATE DATABASE 'cryptmaster_db' WITH OWNER = 'cryptmaster'"))
+    else:
+        print(f"Database 'cryptmaster_db' already exists.")
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return
 
-# Commit the changes and close the connection
-conn.commit()
-cursor.close()
-conn.close()
+def db_check():
+    check_user_exists()
+    check_db_exists()
+    return
