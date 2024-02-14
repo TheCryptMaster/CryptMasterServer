@@ -68,3 +68,6 @@ def db_check():
     check_db_exists()
     db_cleanup()
     return
+
+
+db_check()
