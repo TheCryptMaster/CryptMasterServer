@@ -44,14 +44,14 @@ def check_db_exists():
         port=DB_PORT,
         user=DB_USER,
         password=DB_PASSWORD,
-        database=DB_NAME
+        database=DB_NAME,
+        autocommit=True
     )
     cursor = conn.cursor()
     # Check if the database exists
     cursor.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname='cryptmaster_db'"))
     existing_db_check = cursor.fetchone()
     if not existing_db_check:
-        cursor.autocommit = True
         print(f"Creating database: 'cryptmaster_db'")
         cursor.execute(sql.SQL("CREATE DATABASE cryptmaster_db WITH OWNER = cryptmaster"))
     else:
