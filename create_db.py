@@ -26,10 +26,9 @@ def check_user_exists():
     # Check if the user exists
     cursor.execute(sql.SQL("SELECT 1 FROM pg_roles WHERE rolname='cryptmaster'"))
     existing_user_check = cursor.fetchone()
-    cursor
     if not existing_user_check:
         print(f"Creating user: 'cryptmaster'")
-        cursor.execute(sql.SQL(f"CREATE USER 'cryptmaster' WITH PASSWORD '{get_db_secret()}'"))
+        cursor.execute(sql.SQL(f"CREATE USER cryptmaster PASSWORD '{get_db_secret()}'"))
     else:
         print(f"User 'cryptmaster' already exists.")
     conn.commit()
@@ -45,7 +44,7 @@ def check_db_exists():
     existing_db_check = cursor.fetchone()
     if not existing_db_check:
         print(f"Creating database: 'cryptmaster_db'")
-        cursor.execute(sql.SQL("CREATE DATABASE 'cryptmaster_db' WITH OWNER = 'cryptmaster'"))
+        cursor.execute(sql.SQL("CREATE DATABASE cryptmaster_db WITH OWNER = cryptmaster"))
     else:
         print(f"Database 'cryptmaster_db' already exists.")
     conn.commit()
@@ -55,9 +54,9 @@ def check_db_exists():
 
 def db_cleanup():
     cursor = conn.cursor()
-    cursor.execute(sql.SQL("DROP DATABASE IF EXISTS 'initial_db_user_db'"))
+    cursor.execute(sql.SQL("DROP DATABASE IF EXISTS initial_db_user_db"))
     conn.commit()
-    cursor.execute(sql.SQL("DROP USER IF EXISTS 'initial_db_user'"))
+    cursor.execute(sql.SQL("DROP USER IF EXISTS initial_db_user"))
     conn.commit()
     cursor.close()
     conn.close()
