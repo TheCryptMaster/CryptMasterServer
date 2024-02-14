@@ -11,17 +11,18 @@ DB_PASSWORD = getpass('Enter initial db secret: ')
 DB_NAME = 'initial_db_user_db'
 
 # Establish a connection to the PostgreSQL server
-conn = connect(
-    host=DB_HOST,
-    port=DB_PORT,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    database=DB_NAME
-)
+
 
 
 # Create a cursor object to execute SQL queries
 def check_user_exists():
+    conn = connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME
+    )
     cursor = conn.cursor()
     # Check if the user exists
     cursor.execute(sql.SQL("SELECT 1 FROM pg_roles WHERE rolname='cryptmaster'"))
@@ -38,6 +39,13 @@ def check_user_exists():
 
 
 def check_db_exists():
+    conn = connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME
+    )
     cursor = conn.cursor()
     # Check if the database exists
     cursor.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname='cryptmaster_db'"))
@@ -53,6 +61,13 @@ def check_db_exists():
     return True
 
 def db_cleanup():
+    conn = connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME
+    )
     cursor = conn.cursor()
     cursor.execute(sql.SQL("DROP DATABASE IF EXISTS initial_db_user_db"))
     conn.commit()
