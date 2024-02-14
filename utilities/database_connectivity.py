@@ -37,7 +37,7 @@ def test_db_con():
     except:
         print('Unable to connect to DB.  Trying to create new DB.')
         try:
-            import create_db
+            import utilities.create_db
             engine = create_engine(db_uri)
         except:
             print('DB Error')
