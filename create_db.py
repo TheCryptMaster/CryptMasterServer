@@ -21,10 +21,8 @@ conn = connect(
     )
 
 conn.autocommit = True
-# Create a cursor object to execute SQL queries
 cursor = conn.cursor()
 
-# Check if the user exists
 cursor.execute(sql.SQL("SELECT 1 FROM pg_roles WHERE rolname='cryptmaster'"))
 existing_user_check = cursor.fetchone()
 
@@ -42,8 +40,6 @@ if not existing_db_check:
 else:
     print(f"Database 'cryptmaster_db' already exists.")
 
-#cursor.execute(sql.SQL("DROP DATABASE IF EXISTS initial_db_user_db"))
-#cursor.execute(sql.SQL("DROP USER IF EXISTS initial_db_user"))
 
 
 conn.commit()
