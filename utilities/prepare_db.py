@@ -1,22 +1,21 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, MetaData
-from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
 
-# Step 3: Create a database engine
-database_url = 'sqlite:///example.db'
-engine = create_engine(database_url, echo=True)
 
-# Step 4: Define a model
-Base = declarative_base()
 
-class User(Base):
-    __tablename__ = 'users'
+def get_clean_sql_schema(schema_version):
+    schema_commands,  sql_command = [], ''
+    sql_file = open(f'./utilities/schema_{schema_version}.sql','r')
+    for line in sql_file:
+        if not line.startswith('--') and line.strip('\n'):
+            sql_command += line.strip('\n')
+            if sql_command.endswith(';'):
+                schema_commands.append(sql_command)
+                sql_command = ''
+    return schema_commands
 
-    id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True, nullable=False)
-    email = Column(String, unique=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.now)
 
-# Step 5: Create the table
-metadata = MetaData()
-Base.metadata.create_all(bind=engine)
+def get_new_db_statements():
+    schema_commands = []
+    sql_file = open(f'./utilities/new_db_entries.sql', 'r')
+    for line in sql_file:
+        schema_commands.append(line)
+    return schema_commands
