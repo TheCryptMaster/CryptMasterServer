@@ -43,7 +43,7 @@ def get_version():
     return needs_update, version
 
 
-def test_db_con():
+def check_db_con():
     engine = create_engine(db_uri)
     try:
         engine.connect()
@@ -77,4 +77,4 @@ def test_db_con():
 
 
 
-test_db_con()
+check_db_con()
