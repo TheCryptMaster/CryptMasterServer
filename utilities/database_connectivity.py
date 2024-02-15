@@ -56,7 +56,7 @@ def check_db_con():
             print('DB Error')
             sys.exit()
     try:
-        psql.read_sql_query("SELECT * from cm_control", con=engine)
+        psql.read_sql_query("SELECT * from system_info", con=engine)
     except:
         print('Empty DB Exists.  Creating new DB.')
         from utilities.prepare_db import get_clean_sql_schema, get_new_db_statements
