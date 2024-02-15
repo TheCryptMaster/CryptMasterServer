@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 
+print('THIS IS FOR VERSION 1.0.  IT WILL BE REMOVED IN THE RELEASE CANDIDATE FOR 2.0')
+
 import pyotp
 import os
 from dotenv import load_dotenv
