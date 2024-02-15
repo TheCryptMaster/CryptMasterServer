@@ -34,7 +34,7 @@ def query_db(query):
 
 def get_version():
     needs_update = False
-    version_query = query_db(f"SELECT version_active FROM cm_control ORDER BY ID DESC LIMIT 1")
+    version_query = query_db(f"SELECT version_active FROM system_info ORDER BY ID DESC LIMIT 1")
     if len(version_query) == 0:
         needs_update = False
         version = None
