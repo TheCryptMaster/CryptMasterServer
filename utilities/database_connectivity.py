@@ -62,7 +62,7 @@ def check_db_con():
         from utilities.prepare_db import get_clean_sql_schema, get_new_db_statements
         schema_commands = get_clean_sql_schema(LATEST_VERSION)
         for command in schema_commands:
-            execute_db(command)
+            execute_db(command[:-1])
         new_db_commands = get_new_db_statements()
         for command in new_db_commands:
             execute_db(command)
