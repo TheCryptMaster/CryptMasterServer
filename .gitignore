@@ -5,9 +5,12 @@ __pycache__/
 
 app_db/dev_db_file.db
 
+.entropy
 
 *.pem
 *.log
+
+backups/
 
 # C extensions
 *.so

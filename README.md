@@ -22,10 +22,13 @@ pip install -r requirements.txt
 
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+sudo apt-get update
+
+
 sudo apt-get install redis-server supervisor certbot gnupg2 wget vim postgresql-16 postgresql-contrib-16 
 sudo systemctl enable postgresql
 sudo systemctl start postgresql
-sudo apt update
+
 sudo apt full-upgrade
 
 sudo sed -i '/^host/s/ident/md5/' /etc/postgresql/16/main/pg_hba.conf
@@ -34,10 +37,10 @@ echo "host all all 0.0.0.0/0 md5" | sudo tee -a /etc/postgresql/16/main/pg_hba.c
 
 
 ## Create DB User Account with temporary password
-sudo -u postgres createuser --superuser cryptmaster -P
+sudo -u postgres createuser --superuser initial_db_user -P
 
 ## Create Empty DB
-sudo -u postgres createdb cryptmaster_db --owner=cryptmaster
+sudo -u postgres createdb initial_db_user_db --owner=initial_db_user
 
 
 
@@ -103,7 +106,7 @@ sudo supervisorctl restart crypt_keeper
 
 
 ## API Functions
-https://your-api-name.your-domain.com:5010/enable_api
+https://your-api-name.your-domain.com:2053/enable_api
 
 Payload = 
 {
@@ -112,7 +115,7 @@ Payload =
 }
 
 
-https://your-api-name.your-domain.com:5010/get_secret
+https://your-api-name.your-domain.com:2053/get_secret
 
 Payload = 
 {

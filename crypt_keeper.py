@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import pyotp
+
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from fastapi import FastAPI, Depends, Body, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,7 +20,17 @@ import uvicorn
 
 load_dotenv()
 
+
+
+#@asynccontextmanager
+#async def lifespan(app: FastAPI):
+#    limiter = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
+#    await FastAPILimiter.init(limiter)
+
+
+
 utc = pytz.UTC
+#app = FastAPI(lifespan=lifespan)
 app = FastAPI()
 authenticate_users_file = '.authenticated_users'
 authenticated_servers_file = '.authenticated_servers'
@@ -41,9 +53,9 @@ api_port = int(os.getenv('api_port'))
 
 
 origins = [
-    "https://api.themorphium.io:8095",
+    "https://secure-api.themorphium.io:2053",
     "http://localhost",
-    "http://localhost:8095"
+    "http://localhost:2053"
 ]
 
 app.add_middleware(
@@ -167,6 +179,59 @@ async def startup():
     limiter = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
     await FastAPILimiter.init(limiter)
 
+
+
+
+#### VERSION 2.0 Endpoints - Current API Endpoints
+
+@app.post("/v2/enable_api", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
+def validate_credentials(request: Request, payload=Body(...)):
+    client_host = get_web_user_ip_address(request)
+    if check_fail_disable():
+        print(f'IP Address {client_host} attempted to get secret while system is disabled.')
+        set_fail()
+        raise HTTPException(status_code=403, detail="API Disabled")
+        return
+    user = payload.get('user_name', None)
+    one_time_pass = str(payload.get('otp', None))
+    if user == None or one_time_pass == None:
+        set_fail()
+        raise HTTPException(status_code=403, detail="Invalid Credentials")
+    response = check_password(user, one_time_pass, client_host)
+    return response
+
+
+
+
+
+
+@app.post("/v2/get_secret")
+def provide_secrete(request: Request, payload=Body(...)):
+    authenticated_servers = get_authenticated_servers()
+    client_host = get_web_user_ip_address(request)
+    if client_host not in authenticated_servers:
+        print(f'IP Address {client_host} attempted to get secret, and is not an authorized client')
+        set_fail()
+        raise HTTPException(status_code=403, detail="ACCESS DENIED")
+        return
+    elif check_fail_disable():
+        print(f'IP Address {client_host} attempted to get secret while system is disabled.')
+        set_fail()
+        raise HTTPException(status_code=403, detail="API Disabled")
+        return
+    elif not check_active():
+        print(f'IP Address {client_host} attempted to get secret.  OTP has not been provided.')
+        return {'response': 'Authorized user must provide OTP'}
+    requested_password = payload.get('requested_password', None)
+    if requested_password == None:
+        return {'response': 'No secret requested'}
+    response = get_secret(requested_password)
+    return response
+
+
+
+
+#### VERSION 1.0 Endpoints - Will be removed in the near term
 
 
 @app.post("/enable_api", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
