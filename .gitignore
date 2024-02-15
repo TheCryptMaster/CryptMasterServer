@@ -10,7 +10,7 @@ app_db/dev_db_file.db
 *.pem
 *.log
 
-
+backups/
 
 # C extensions
 *.so
