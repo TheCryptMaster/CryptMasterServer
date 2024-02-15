@@ -59,7 +59,7 @@ def check_db_con():
         psql.read_sql_query("SELECT * from cm_control", con=engine)
     except:
         print('Empty DB Exists.  Creating new DB.')
-        from prepare_db import get_clean_sql_schema, get_new_db_statements
+        from utilities.prepare_db import get_clean_sql_schema, get_new_db_statements
         schema_commands = get_clean_sql_schema(LATEST_VERSION)
         for command in schema_commands:
             execute_db(command)
