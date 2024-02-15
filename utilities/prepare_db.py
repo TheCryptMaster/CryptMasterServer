@@ -8,7 +8,7 @@ def get_clean_sql_schema(schema_version):
         if not line.startswith('--') and line.strip('\n'):
             sql_command += line.strip('\n')
             if sql_command.endswith(';'):
-                schema_commands.append(sql_command)
+                schema_commands.append(sql_command[:-1])
                 sql_command = ''
     return schema_commands
 
