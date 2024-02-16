@@ -241,8 +241,25 @@ def validate_credentials(request: Request, payload=Body(...)):
 @app.post("/v2/enroll_server", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
 def enroll_server(request: Request, payload=Body(...)):
     client_host = get_web_user_ip_address(request)
-    print(client_host, payload)
+    payload['ip_address'] = client_host
+    response = add_pending_request(payload)
+    return response
+
+
+def add_pending_request(payload):
+    encrypted_request = encrypt_secret(generate_secret('enrollment', payload))
+    check_existing = query_db(f"SELECT id pending_row, enrollment_attempts FROM pending_enrollments WHERE pending_enrollment = '{encrypted_request}'")
+    if len(check_existing) != 0:
+        pending_row, enrollment_attempts = check_existing['pending_row'][0], check_existing['enrollment_attempts'][0]
+        new_attempt = enrollment_attempts + 1
+        execute_db(f"UPDATE pending_enrollments SET enrollment_attempts = {new_attempt} WHERE id = {pending_row}")
+        if new_attempt > 3:
+            return {'response': 'This server has been banned'}
+        else:
+            return {'response': 'enrollment is still pending'}
+    execute_db(f"INSERT INTO pending_enrollments(pending_enrollment) VALUES('{encrypted_request}')")
     return {'response': 'enrollment pending'}
+
 
 
 
