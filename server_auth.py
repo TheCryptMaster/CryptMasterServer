@@ -28,10 +28,11 @@ class CryptMasterClientAuth:
         ph = PasswordHasher()
         for secret in self._PENDING_AUTHS:
             try:
-                ph.verify(provided_secret, secret)
+                test_valid = ph.verify(provided_secret, secret)
             except:
                 continue
-            self._PENDING_AUTHS.delete(secret)
-            return True
+            if test_valid:
+                self._PENDING_AUTHS.delete(secret)
+                return True
         return False
 
