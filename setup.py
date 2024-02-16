@@ -10,7 +10,7 @@ import sys
 from getpass import getpass
 from password_strength import PasswordPolicy
 from time import sleep
-from utilities.database_connectivity import query_db, execute_db, set_domain_name, sqlalchemy_escape
+from utilities.database_connectivity import query_db, execute_db, set_domain_name, set_host_name, sqlalchemy_escape
 from utilities.secret_generator import generate_secret
 from utilities.key_crypt import encrypt_secret, decrypt_secret
 
@@ -135,7 +135,7 @@ def generate_user_creds(user_email, user_pass):
 
 
 def display_options():
-    options = ['Add User to System', 'Set Domain Name', 'Quit']
+    options = ['Add User to System', 'Set Host Name', 'Set Domain Name', 'Quit']
     clear_screen()
     display_string = ('\nWelcome to the Crypt Master Setup.  Please choose from the following'
                       ' options.\n\n')
@@ -165,8 +165,11 @@ def run_setup():
             add_user()
         elif selection == '2':
             clear_screen()
-            set_domain_name()
+            set_host_name()
         elif selection == '3':
+            clear_screen()
+            set_domain_name()
+        elif selection == '4':
             clear_screen()
             print('\nThank you for using the Crypt Master!\n')
             sys.exit()
