@@ -25,7 +25,7 @@ import uvicorn
 load_dotenv()
 
 
-
+crypt_master_server_auth = CryptMasterClientAuth()
 
 #@asynccontextmanager
 #async def lifespan(app: FastAPI):
