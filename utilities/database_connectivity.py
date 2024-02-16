@@ -66,12 +66,29 @@ def check_db_con():
         new_db_commands = get_new_db_statements()
         for command in new_db_commands:
             execute_db(command)
-        print(f'DB Schema {LATEST_VERSION} Deployed')
+        print(f'DB Schema {LATEST_VERSION} Deployed\n\n')
+        set_domain_name()
     needs_update, version = get_version()
     if needs_update:
         print('Updating DB')
         # from prepare_db import patch_db
         # patch_db(version)
+
+
+def set_domain_name():
+    fail_count = 0
+    while True:
+        fail_count += 1
+        if fail_count > 3:
+            print('Failed to set domain. Please set the domain from setup before using the Crypt Master.')
+            break
+        domain_name = input('What domain name will you use with your Crypt Master? i.e. yourdomain.com: ')
+        correct = input(f'You entered {domain_name}.  Is that correct?  (y/n): ')
+        if correct[:1].lower() == 'y':
+            execute_db(f"UPDATE cryptmaster_warden SET host_name = '{domain_name}'")
+            break
+    return
+
 
 
 

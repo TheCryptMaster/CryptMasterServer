@@ -36,7 +36,6 @@ load_dotenv()
 utc = pytz.UTC
 #app = FastAPI(lifespan=lifespan)
 app = FastAPI()
-authenticate_users_file = '.authenticated_users'
 authenticated_servers_file = '.authenticated_servers'
 fail_count = 0
 fail_disable = datetime.now()
@@ -72,10 +71,6 @@ app.add_middleware(
 
 
 
-def get_authenticated_users():
-    with open(authenticate_users_file) as f:
-        authenticated_users = f.read().splitlines()
-    return authenticated_users
 
 
 
@@ -84,42 +79,6 @@ def get_authenticated_servers():
         authenticated_servers = f.read().splitlines()
     return authenticated_servers
 
-
-def check_password(user, one_time_pass, client_host):
-    global fail_count
-    if check_fail_disable():
-        raise HTTPException(status_code=403, detail="System Disabled")
-    users = get_authenticated_users()
-    if len(users) == 0:
-        set_fail()
-        raise HTTPException(status_code=403, detail="Invalid Credentials")
-        return
-    authenticated_users = {}
-    i = 0
-    while i < len(users):
-        account = users[i]
-        i += 1
-        user_secret = users[i]
-        authenticated_users = authenticated_users | {account: user_secret}
-        i += 1
-    pyotp_seed = authenticated_users.get(user, None)
-    totp = pyotp.TOTP(pyotp_seed)
-    if user.lower() not in [*authenticated_users]:
-        print(f'User: {user} at IP Address {client_host} attempted to open api and is not an authorized user')
-        set_fail()
-        raise HTTPException(status_code=403, detail="Invalid Credentials")
-        return
-    elif not totp.verify(otp=one_time_pass, valid_window=totp_window):
-        print(f'User: {user} at IP Address {client_host} attempted to open api with an invalid OTP')
-        set_fail()
-        raise HTTPException(status_code=403, detail="Invalid Credentials")
-    else:
-        print(f'User: {user} at IP Address {client_host} SUCCESSFULLY OPENED API')
-        active_until = set_active_until()
-        string_time = active_until.strftime("%m-%d-%Y_%Hh%Mm%Ss")
-        response = {'response': 'Success', 'active_until': string_time}
-        clear_fails()
-    return response
 
 
 
@@ -290,24 +249,6 @@ def provide_secrete(request: Request, payload=Body(...)):
 
 
 #### VERSION 1.0 Endpoints - Will be removed in the near term
-
-
-@app.post("/enable_api", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
-def validate_credentials(request: Request, payload=Body(...)):
-    client_host = get_web_user_ip_address(request)
-    if check_fail_disable():
-        print(f'IP Address {client_host} attempted to get secret while system is disabled.')
-        set_fail()
-        raise HTTPException(status_code=403, detail="API Disabled")
-        return
-    user = payload.get('user_name', None)
-    one_time_pass = str(payload.get('otp', None))
-    if user == None or one_time_pass == None:
-        set_fail()
-        raise HTTPException(status_code=403, detail="Invalid Credentials")
-    response = check_password(user, one_time_pass, client_host)
-    return response
-
 
 
 
