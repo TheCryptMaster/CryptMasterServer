@@ -57,8 +57,8 @@ def get_system_name():
     if len(lookup) == 0:
         return None
     encrypted_domain, encrypted_host = lookup['domain_name'][0], lookup['host_name'][0]
-    domain = decrypt_secret(generate_secret('domain'), encrypted_domain)[1:-1]
-    host = decrypt_secret(generate_secret('hostname'), encrypted_host)[1:-1]
+    domain = decrypt_secret(generate_secret('domain'), encrypted_domain)
+    host = decrypt_secret(generate_secret('hostname'), encrypted_host)
     system_name = f'https://{host}.{domain}'
     return system_name
 
@@ -172,7 +172,7 @@ def check_password_v2(user, user_pass, one_time_pass, client_host):
     user_row, encrypted_otp = user_details[0], user_details[1]
     user_secret = generate_secret(user_pass)
     try:
-        pyotp_seed = decrypt_secret(user_secret, encrypted_otp)[1:-1]
+        pyotp_seed = decrypt_secret(user_secret, encrypted_otp)
     except:
         set_fail()
         raise HTTPException(status_code=403, detail="Bad Password!")
