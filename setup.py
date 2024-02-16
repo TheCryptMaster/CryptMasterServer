@@ -154,7 +154,7 @@ def display_options():
 
 def run_setup():
     clear_screen()
-    print('Setup Script is under development. Not all items work yet.')
+    print('\nSetup Script is under development. Not all items work yet.')
     sleep(3)
     fail_count = 0
     while True:
