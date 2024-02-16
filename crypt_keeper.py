@@ -242,7 +242,7 @@ def validate_credentials(request: Request, payload=Body(...)):
 def enroll_server(request: Request, payload=Body(...)):
     client_host = get_web_user_ip_address(request)
     print(client_host, payload)
-    return {'enrollment_status': 'pending'}
+    return {'response': 'enrollment pending'}
 
 
 
