@@ -145,6 +145,7 @@ def display_options():
                       ' options.\n\n')
     for i, option in enumerate(options, start=1):
         display_string += f'{i}) {option}\n'
+    display_string += '\n'
     selection = input(display_string)
     return selection
 
@@ -155,7 +156,7 @@ def display_options():
 def run_setup():
     clear_screen()
     print('\nSetup Script is under development. Not all items work yet.')
-    sleep(3)
+    sleep(2)
     fail_count = 0
     while True:
         if fail_count > 2:
@@ -169,7 +170,7 @@ def run_setup():
             set_domain_name()
         elif selection == '3':
             clear_screen()
-            print('\nThank you for using the Crypt Master!')
+            print('\nThank you for using the Crypt Master!\n')
             sys.exit()
         else:
             print('\nThat is not a valid option')
