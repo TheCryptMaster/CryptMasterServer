@@ -2,7 +2,7 @@ import pandas.io.sql as psql
 import sys
 
 from utilities.key_crypt import encrypt_secret
-from utilities.secret_generator import get_db_secret
+from utilities.secret_generator import get_db_secret, generate_secret
 from sqlalchemy import create_engine, text
 
 
@@ -84,7 +84,7 @@ def set_domain_name():
             break
         domain_name = input('\nWhat domain name will you use with your Crypt Master? i.e. yourdomain.com: ')
         correct = input(f'You entered {domain_name}.  Is that correct?  (y/n): ')
-        encrypted_domain = encrypt_secret(domain_name)
+        encrypted_domain = encrypt_secret(domain_name, generate_secret('domain'))
         if correct[:1].lower() == 'y':
             execute_db(f"UPDATE cryptmaster_warden SET host_name = '{encrypted_domain}'")
             break
