@@ -21,7 +21,7 @@ class CryptMasterClientAuth:
         expected_response = nonce + server_salt
         self._PENDING_AUTHS.append(expected_response)
         response = {'response': 'Awaiting Key', 'nonce': nonce}
-        return response
+        return True, response
 
     def validate_secret(self, provided_secret):
         if provided_secret == None:
