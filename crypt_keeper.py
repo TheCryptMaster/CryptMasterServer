@@ -160,7 +160,7 @@ def get_user_details(user_name):
 
 
 
-def check_password_v2(user, user_pass, one_time_pass, client_host):
+def check_password(user, user_pass, one_time_pass, client_host):
     global fail_count
     if check_fail_disable():
         raise HTTPException(status_code=403, detail="System Disabled")
@@ -225,7 +225,7 @@ def validate_credentials(request: Request, payload=Body(...)):
     if user == None or one_time_pass == None or user_pass == None:
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
-    response = check_password_v2(user, user_pass, one_time_pass, client_host)
+    response = check_password(user, user_pass, one_time_pass, client_host)
     return response
 
 

@@ -7,6 +7,7 @@ import qrcode
 import sys
 
 # Lots of work left for this script
+from datetime import datetime, timezone
 from getpass import getpass
 from password_strength import PasswordPolicy
 from time import sleep
@@ -103,9 +104,9 @@ def add_user():
         user_expiry = input('How long do you want the account active for? (default 365): ')
         if user_expiry == '':
             user_expiry = 365
-        elif isinstance(user_expiry, int):
+        try:
             user_expiry = int(user_expiry)
-        else:
+        except:
             print('\nPlease enter a numerical value, or leave blank for default.\n')
             continue
         break
@@ -113,18 +114,48 @@ def add_user():
     add_user_to_db(user_email, encrypted_otp, user_expiry)
     print('\nUser added!  Use QR Code to Onboard\n')
     display_qr(provisioning_uri)
-    return
+    sys.exit()
 
+
+
+def get_system_users():
+    system_users = []
+    execute_db(f"UPDATE user_accounts SET is_active = False WHERE now() > active_until AND is_active = True")
+    all_users = query_db(f"SELECT id user_row, username, is_active, active_until FROM user_accounts")
+    if len(all_users) == 0:
+        return system_users
+    i = 0
+    while i < len(all_users):
+        user_row, encrypted_user_name, is_active, active_until = int(all_users['user_row'][i]), all_users['username'][i], bool(all_users['is_active'][i]), all_users['active_until'][i].to_pydatetime()
+        user_name = decrypt_secret(generate_secret('username'), encrypted_user_name)
+        if not is_active:
+            time_remaining = 'EXPIRED/DISABLED'
+        else:
+            time_remaining = str((active_until - datetime.now(timezone.utc)).days) + ' Day(s)'
+        system_users.append([user_row, user_name, time_remaining])
+        i += 1
+    return system_users
+
+
+
+
+
+def update_remove_user():
+    pass
 
 
 
 def add_user_to_db(user_email, encrypted_otp, user_expiry):
-    user_email = generate_secret(user_email)
+    user_email = encrypt_secret(generate_secret('username'), user_email)
     assert check_existing('user', user_email) is None
     execute_db(f"INSERT INTO USER_ACCOUNTS(username, user_otp_hash, active_until) VALUES('{user_email}', '{encrypted_otp}', NOW() + '{user_expiry} DAYS')")
     return
 
 
+def user_management():
+    system_users = get_system_users()
+    # ToDo Add splash, and options to udpate users.
+    add_user()
 
 
 def generate_user_creds(user_email, user_pass):
@@ -135,7 +166,7 @@ def generate_user_creds(user_email, user_pass):
 
 
 def display_options():
-    options = ['Add User to System', 'Set Host Name', 'Set Domain Name', 'Quit']
+    options = ['User Management', 'Set Host Name', 'Set Domain Name', 'Quit']
     clear_screen()
     display_string = ('\nWelcome to the Crypt Master Setup.  Please choose from the following'
                       ' options.\n\n')
@@ -162,7 +193,7 @@ def run_setup():
         selection = display_options()
         if selection == '1':
             clear_screen()
-            add_user()
+            user_management()
         elif selection == '2':
             clear_screen()
             set_host_name()
