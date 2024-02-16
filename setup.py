@@ -106,6 +106,7 @@ def add_user():
 
 
 def add_user_to_db(user_email, encrypted_otp, user_expiry):
+    user_email = generate_secret(user_email)
     assert check_existing('user', user_email) is None
     execute_db(f"INSERT INTO USER_ACCOUNTS(username, user_otp_hash, active_until) VALUES('{user_email}', '{slqalchemy_escape(encrypted_otp)}', NOW() + '{user_expiry} DAYS')")
     return

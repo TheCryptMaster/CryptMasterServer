@@ -180,6 +180,7 @@ def get_web_user_ip_address(request):
 
 def get_user_details(user_name):
     user_details = []
+    user_name = generate_secret(user_name)
     execute_db(f"UPDATE user_accounts SET is_active = False WHERE now() > active_until AND is_active = True")
     user_lookup = query_db(f"SELECT id user_row, user_otp_hash FROM user_accounts WHERE username = '{user_name}' AND is_active = True")
     if len(user_lookup) != 0:
