@@ -168,7 +168,7 @@ def run_setup():
             set_domain_name()
         elif selection == '3':
             print('Thank you for using the Crypt Master!')
-            os.exit()
+            sys.exit()
         else:
             print('That is not a valid option')
             sleep(3)
