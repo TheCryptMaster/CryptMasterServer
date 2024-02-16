@@ -239,9 +239,9 @@ def header_response(request: Request, payload=Body(...)):
 
 @app.post("/v2/enable_api", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
 def validate_credentials(request: Request, payload=Body(...)):
-    client_host = get_web_user_ip_address(request)
+    ip_address = get_web_user_ip_address(request)
     if check_fail_disable():
-        print(f'IP Address {client_host} attempted to get secret while system is disabled.')
+        print(f'IP Address {ip_address} attempted to get secret while system is disabled.')
         set_fail()
         raise HTTPException(status_code=403, detail="API Disabled")
         return
@@ -251,7 +251,7 @@ def validate_credentials(request: Request, payload=Body(...)):
     if user == None or one_time_pass == None or user_pass == None:
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
-    response = check_password(user, user_pass, one_time_pass, client_host)
+    response = check_password(user, user_pass, one_time_pass, ip_address)
     return response
 
 
@@ -270,20 +270,27 @@ def enroll_server(request: Request, payload=Body(...)):
 
 @app.post("/v2/get_secret")
 def provide_secrete(request: Request, payload=Body(...)):
-    authenticated_servers = get_authenticated_servers()
-    client_host = get_web_user_ip_address(request)
-    if client_host not in authenticated_servers:
-        print(f'IP Address {client_host} attempted to get secret, and is not an authorized client')
+    ip_address = get_web_user_ip_address(request)
+    system_id = payload.get('system_id')
+    encrypted_id = encrypt_secret(generate_secret('system_id'), system_id)
+    encrypted_ip = encrypt_secret(generate_secret('ip_address'), ip_address)
+    if len(query_db(f"SELECT id FROM app_servers WHERE server_name = '{encrypted_id}' AND ip_address = '{encrypted_ip}'")) == 0:
+        print(f'IP Address {ip_address} attempted to get secret, and is not a valid server')
+        set_fail()
+        raise HTTPException(status_code=403, detail="ACCESS DENIED")
+        return
+    if not crypt_master_server_auth.validate_secret(payload.get('auth_response', None)):
+        print(f'IP Address {ip_address} attempted to get secret, with invalid credentials.')
         set_fail()
         raise HTTPException(status_code=403, detail="ACCESS DENIED")
         return
     elif check_fail_disable():
-        print(f'IP Address {client_host} attempted to get secret while system is disabled.')
+        print(f'IP Address {ip_address} attempted to get secret while system is disabled.')
         set_fail()
         raise HTTPException(status_code=403, detail="API Disabled")
         return
     elif not check_active():
-        print(f'IP Address {client_host} attempted to get secret.  OTP has not been provided.')
+        print(f'IP Address {ip_address} attempted to get secret.  OTP has not been provided.')
         return {'response': 'Authorized user must provide OTP'}
     requested_password = payload.get('requested_password', None)
     if requested_password == None:

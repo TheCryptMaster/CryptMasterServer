@@ -22,6 +22,8 @@ class CryptMasterClientAuth:
         return {'response': 'Awaiting Key', 'nonce': nonce}
 
     def validate_secret(self, provided_secret):
+        if provided_secret == None:
+            return False
         ph = PasswordHasher()
         for secret in self._PENDING_AUTHS:
             if ph.verify(provided_secret, secret):
