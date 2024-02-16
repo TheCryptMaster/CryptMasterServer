@@ -75,6 +75,12 @@ def check_db_con():
         # patch_db(version)
 
 
+def sqlalchemy_escape(sql_string):
+    fixed_string = sql_string.replace('%', '%%').replace(':', '\:')
+    return fixed_string
+
+
+
 def set_domain_name():
     fail_count = 0
     while True:
@@ -84,7 +90,7 @@ def set_domain_name():
             break
         domain_name = input('\nWhat domain name will you use with your Crypt Master? i.e. yourdomain.com: ')
         correct = input(f'You entered {domain_name}.  Is that correct?  (y/n): ')
-        encrypted_domain = encrypt_secret(domain_name, generate_secret('domain'))
+        encrypted_domain = encrypt_secret(domain_name, sqlalchemy_escape(generate_secret('domain')))
         if correct[:1].lower() == 'y':
             execute_db(f"UPDATE cryptmaster_warden SET host_name = '{encrypted_domain}'")
             break
