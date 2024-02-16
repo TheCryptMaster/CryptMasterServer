@@ -75,7 +75,7 @@ def check_existing(object_type, query_string):
 
 
 def add_user():
-    user_email = input('Please enter the user email address: ')
+    user_email = input('\nPlease enter the user email address: ')
     if check_existing('user', user_email) is not None:
         print('User already exists in database!')
         return
@@ -165,8 +165,10 @@ def run_setup():
             sys.exit()
         selection = display_options()
         if selection == '1':
+            clear_screen()
             add_user()
         elif selection == '2':
+            clear_screen()
             set_domain_name()
         elif selection == '3':
             clear_screen()
