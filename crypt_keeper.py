@@ -238,7 +238,7 @@ def validate_credentials(request: Request, payload=Body(...)):
     return response
 
 
-@app.post("/v2/enroll_server", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
+@app.post("/v2/enroll_server", dependencies=[Depends(RateLimiter(times=1, seconds=120))])
 def enroll_server(request: Request, payload=Body(...)):
     client_host = get_web_user_ip_address(request)
     payload['ip_address'] = client_host
@@ -247,7 +247,7 @@ def enroll_server(request: Request, payload=Body(...)):
 
 
 def add_pending_request(payload):
-    encrypted_request = encrypt_secret(generate_secret('enrollment', payload))
+    encrypted_request = encrypt_secret(generate_secret('enrollment'), payload)
     check_existing = query_db(f"SELECT id pending_row, enrollment_attempts FROM pending_enrollments WHERE pending_enrollment = '{encrypted_request}'")
     if len(check_existing) != 0:
         pending_row, enrollment_attempts = check_existing['pending_row'][0], check_existing['enrollment_attempts'][0]
