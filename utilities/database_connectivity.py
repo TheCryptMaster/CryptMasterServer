@@ -92,12 +92,25 @@ def set_domain_name():
         correct = input(f'You entered {domain_name}.  Is that correct?  (y/n): ')
         encrypted_domain = encrypt_secret(domain_name, generate_secret('domain'))
         if correct[:1].lower() == 'y':
-            execute_db(f"UPDATE cryptmaster_warden SET host_name = '{sqlalchemy_escape(encrypted_domain)}'")
+            execute_db(f"UPDATE cryptmaster_warden SET domain_name = '{sqlalchemy_escape(encrypted_domain)}'")
             break
     return
 
 
-
+def set_host_name():
+    fail_count = 0
+    while True:
+        fail_count += 1
+        if fail_count > 3:
+            print('Failed to set host name. Please set the host name from setup before using the Crypt Master.')
+            break
+        host_name = input('\nWhat host name will you use with your Crypt Master? i.e. yourdomain.com: ')
+        correct = input(f'You entered {host_name}.  Is that correct?  (y/n): ')
+        encrypted_hostname = encrypt_secret(host_name, generate_secret('hostname'))
+        if correct[:1].lower() == 'y':
+            execute_db(f"UPDATE cryptmaster_warden SET host_name = '{sqlalchemy_escape(encrypted_hostname)}'")
+            break
+    return
 
 
 

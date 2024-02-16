@@ -52,7 +52,8 @@ pyotp_seed = os.getenv('pyotp_seed')
 pyotp_issuer = os.getenv('pyotp_issuer')
 api_port = int(os.getenv('api_port'))
 
-
+def get_domain_name():
+    lookup = query_db(SELECT host_name )
 
 
 origins = [
