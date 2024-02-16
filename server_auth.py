@@ -6,3 +6,4 @@ class CryptMasterClientAuth:
         some_value = None
 
     def validate_secret(self, provided_secret):
+        pass
