@@ -1,7 +1,7 @@
 import pandas.io.sql as psql
 import sys
 
-from key_crypt import encrypt_secret
+from utilities.key_crypt import encrypt_secret
 from utilities.secret_generator import get_db_secret
 from sqlalchemy import create_engine, text
 
