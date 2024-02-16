@@ -203,6 +203,20 @@ async def startup():
 
 
 
+def add_pending_request(payload):
+    encrypted_request = encrypt_secret(generate_secret('enrollment'), payload)
+    check_existing = query_db(f"SELECT id pending_row, enrollment_attempts FROM pending_enrollments WHERE pending_enrollment = '{encrypted_request}'")
+    if len(check_existing) != 0:
+        pending_row, enrollment_attempts = check_existing['pending_row'][0], check_existing['enrollment_attempts'][0]
+        new_attempt = enrollment_attempts + 1
+        execute_db(f"UPDATE pending_enrollments SET enrollment_attempts = {new_attempt} WHERE id = {pending_row}")
+        if new_attempt > 3:
+            return {'response': 'This server has been banned'}
+        else:
+            return {'response': 'enrollment is still pending'}
+    execute_db(f"INSERT INTO pending_enrollments(pending_enrollment) VALUES('{encrypted_request}')")
+    return {'response': 'enrollment pending'}
+
 
 
 
@@ -214,9 +228,12 @@ async def startup():
 
 
 @app.post("/v2/start_auth", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
-def header_response(request: Request):
-    # This is incomplete.  I may return to this in a future version.
-    return Response("Unauthorized", 401,{'WWW-Authenticate': 'Digest realm="Protected", nonce="c3bdb3a263509d1542975314"'})
+def header_response(request: Request, payload=Body(...)):
+    payload['ip_address'] = get_web_user_ip_address(request)
+    allowed, response = crypt_master_server_auth.initiate_auth(payload)
+    if not allowed:
+        return Response("Unauthorized", 401,{'WWW-Authenticate': 'Digest realm="Protected"'})
+    return response
 
 
 
@@ -246,19 +263,7 @@ def enroll_server(request: Request, payload=Body(...)):
     return response
 
 
-def add_pending_request(payload):
-    encrypted_request = encrypt_secret(generate_secret('enrollment'), payload)
-    check_existing = query_db(f"SELECT id pending_row, enrollment_attempts FROM pending_enrollments WHERE pending_enrollment = '{encrypted_request}'")
-    if len(check_existing) != 0:
-        pending_row, enrollment_attempts = check_existing['pending_row'][0], check_existing['enrollment_attempts'][0]
-        new_attempt = enrollment_attempts + 1
-        execute_db(f"UPDATE pending_enrollments SET enrollment_attempts = {new_attempt} WHERE id = {pending_row}")
-        if new_attempt > 3:
-            return {'response': 'This server has been banned'}
-        else:
-            return {'response': 'enrollment is still pending'}
-    execute_db(f"INSERT INTO pending_enrollments(pending_enrollment) VALUES('{encrypted_request}')")
-    return {'response': 'enrollment pending'}
+
 
 
 
