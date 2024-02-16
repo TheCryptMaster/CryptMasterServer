@@ -32,7 +32,7 @@ class CryptMasterClientAuth:
             except:
                 continue
             if test_valid:
-                self._PENDING_AUTHS.delete(secret)
+                self._PENDING_AUTHS.remove(secret)
                 return True
         return False
 
