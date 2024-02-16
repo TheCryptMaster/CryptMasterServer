@@ -4,14 +4,14 @@ import pyotp
 
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
-from fastapi import FastAPI, Depends, Body, Request, HTTPException
+from fastapi import FastAPI, Depends, Body, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 import redis.asyncio as redis
 import os
 from dotenv import load_dotenv
-
+from server_auth import CryptMasterClientAuth
 from utilities.database_connectivity import query_db, execute_db
 from utilities.secret_generator import generate_secret
 from utilities.key_crypt import encrypt_secret, decrypt_secret
@@ -23,6 +23,7 @@ import uvicorn
 
 
 load_dotenv()
+
 
 
 
@@ -211,6 +212,14 @@ async def startup():
 
 #### VERSION 2.0 Endpoints - Current API Endpoints
 
+
+@app.post("/v2/start_auth", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
+def header_response(request: Request):
+    # This is incomplete.  I may return to this in a future version.
+    return Response("Unauthorized", 401,{'WWW-Authenticate': 'Digest realm="Protected", nonce="c3bdb3a263509d1542975314"'})
+
+
+
 @app.post("/v2/enable_api", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
 def validate_credentials(request: Request, payload=Body(...)):
     client_host = get_web_user_ip_address(request)
@@ -229,7 +238,11 @@ def validate_credentials(request: Request, payload=Body(...)):
     return response
 
 
-
+@app.post("/v2/enroll_server, dependencies=[Depends(RateLimiter(times=3, seconds=60))]")
+def enroll_server(request: Request, payload=Body(...)):
+    client_host = get_web_user_ip_address(request)
+    print(client_host, payload)
+    return {'enrollment_status': 'pending'}
 
 
 
