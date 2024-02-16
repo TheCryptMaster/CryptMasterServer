@@ -1,8 +1,8 @@
 [program:crypt_keeper]
 environment = PYTHONUNBUFFERED=1
-directory=/full/path/crypt_keeper
-command=/full/path/crypt_keeper/crypt_keeper.py
-user=your_user
+directory=/opt/CryptMasterServer/crypt_keeper
+command=/opt/CryptMasterServer/crypt_keeper.py
+user=your_user #Change this to your user account
 autostart=true
 autorestart=true
 stopasgroup=true

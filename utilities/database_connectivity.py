@@ -68,6 +68,7 @@ def check_db_con():
             execute_db(command)
         print(f'DB Schema {LATEST_VERSION} Deployed\n\n')
         set_domain_name()
+        set_host_name()
     needs_update, version = get_version()
     if needs_update:
         print('Updating DB')
@@ -90,7 +91,7 @@ def set_domain_name():
             break
         domain_name = input('\nWhat domain name will you use with your Crypt Master? i.e. yourdomain.com: ')
         correct = input(f'You entered {domain_name}.  Is that correct?  (y/n): ')
-        encrypted_domain = encrypt_secret(domain_name, generate_secret('domain'))
+        encrypted_domain = encrypt_secret(generate_secret('domain'), domain_name)
         if correct[:1].lower() == 'y':
             execute_db(f"UPDATE cryptmaster_warden SET domain_name = '{sqlalchemy_escape(encrypted_domain)}'")
             break
@@ -104,9 +105,9 @@ def set_host_name():
         if fail_count > 3:
             print('Failed to set host name. Please set the host name from setup before using the Crypt Master.')
             break
-        host_name = input('\nWhat host name will you use with your Crypt Master? i.e. yourdomain.com: ')
+        host_name = input('\nWhat host name will you use with your Crypt Master? i.e. secure-api: ')
         correct = input(f'You entered {host_name}.  Is that correct?  (y/n): ')
-        encrypted_hostname = encrypt_secret(host_name, generate_secret('hostname'))
+        encrypted_hostname = encrypt_secret(generate_secret('hostname'), host_name)
         if correct[:1].lower() == 'y':
             execute_db(f"UPDATE cryptmaster_warden SET host_name = '{sqlalchemy_escape(encrypted_hostname)}'")
             break

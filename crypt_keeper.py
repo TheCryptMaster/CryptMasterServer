@@ -52,8 +52,14 @@ pyotp_seed = os.getenv('pyotp_seed')
 pyotp_issuer = os.getenv('pyotp_issuer')
 api_port = int(os.getenv('api_port'))
 
-def get_domain_name():
-    lookup = query_db(SELECT host_name )
+def get_system_name():
+    lookup = query_db("SELECT host_name, domain_name FROM cryptmaster_warden ORDER BY ID ASC LIMIT 1")
+    if len(lookup) == 0:
+        return None
+    encrypted_domain, encrypted_host = lookup['domain_name'][0], lookup['host_name'][0]
+    domain = decrypt_secret(generate_secret('domain'), encrypted_domain)
+    host = decrypt_secret(generate_secret('hostname'), encrypted_host)
+
 
 
 origins = [
