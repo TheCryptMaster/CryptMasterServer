@@ -57,13 +57,17 @@ def get_system_name():
     if len(lookup) == 0:
         return None
     encrypted_domain, encrypted_host = lookup['domain_name'][0], lookup['host_name'][0]
-    domain = decrypt_secret(generate_secret('domain'), encrypted_domain)
-    host = decrypt_secret(generate_secret('hostname'), encrypted_host)
+    domain = decrypt_secret(generate_secret('domain'), encrypted_domain)[1:-1]
+    host = decrypt_secret(generate_secret('hostname'), encrypted_host)[1:-1]
+    system_name = f'https://{host}.{domain}'
+    return system_name
 
-
+system_name = get_system_name()
+if system_name == None:
+    system_name = 'https://secure-api.cryptmaster.io'
 
 origins = [
-    "https://secure-api.themorphium.io:2053",
+    f"{system_name}:2053",
     "http://localhost",
     "http://localhost:2053"
 ]
