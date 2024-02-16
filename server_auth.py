@@ -20,7 +20,8 @@ class CryptMasterClientAuth:
         nonce = generate_secret(generate_secret() + self._AUTH_SEED)
         expected_response = nonce + server_salt
         self._PENDING_AUTHS.append(expected_response)
-        return {'response': 'Awaiting Key', 'nonce': nonce}
+        response = {'response': 'Awaiting Key', 'nonce': nonce}
+        return response
 
     def validate_secret(self, provided_secret):
         if provided_secret == None:
