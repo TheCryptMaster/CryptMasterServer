@@ -272,7 +272,7 @@ def enroll_server(request: Request, payload=Body(...)):
 def provide_secret(request: Request, payload=Body(...)):
     ip_address = get_web_user_ip_address(request)
     system_id = payload.get('system_id')
-    encrypted_id = generate_secret(system_id)
+    encrypted_id = generate_secret(str(system_id))
     encrypted_ip = generate_secret(ip_address)
     if len(query_db(f"SELECT id FROM app_servers WHERE server_name = '{encrypted_id}' AND ip_address = '{encrypted_ip}'")) == 0:
         print(f'IP Address {ip_address} attempted to get secret, and is not a valid server')
