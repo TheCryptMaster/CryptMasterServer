@@ -27,8 +27,11 @@ class CryptMasterClientAuth:
             return False
         ph = PasswordHasher()
         for secret in self._PENDING_AUTHS:
-            if ph.verify(provided_secret, secret):
-                self._PENDING_AUTHS.delete(secret)
-                return True
+            try:
+                ph.verify(provided_secret, secret)
+            except:
+                continue
+            self._PENDING_AUTHS.delete(secret)
+            return True
         return False
 
