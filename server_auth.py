@@ -8,7 +8,7 @@ class CryptMasterClientAuth:
         self._PENDING_AUTHS = []
         self._AUTH_SEED = generate_secret(None, 64)
 
-    def initiate_auth(payload):
+    def initiate_auth(self, payload):
         ip_address, system_id = payload['ip_address'], payload['system_id']
         encrypted_id = encrypt_secret(generate_secret('system_id'), system_id)
         encrypted_ip = encrypt_secret(generate_secret('ip_address'), ip_address)

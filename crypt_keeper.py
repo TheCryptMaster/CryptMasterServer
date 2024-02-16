@@ -227,7 +227,7 @@ def add_pending_request(payload):
 #### VERSION 2.0 Endpoints - Current API Endpoints
 
 
-@app.post("/v2/start_auth", dependencies=[Depends(RateLimiter(times=6, seconds=60))])
+@app.post("/v2/start_auth", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
 def header_response(request: Request, payload=Body(...)):
     payload['ip_address'] = get_web_user_ip_address(request)
     allowed, response = crypt_master_server_auth.initiate_auth(payload)
@@ -238,7 +238,7 @@ def header_response(request: Request, payload=Body(...)):
 
 
 
-@app.post("/v2/enable_api", dependencies=[Depends(RateLimiter(times=6, seconds=60))])
+@app.post("/v2/enable_api", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
 def validate_credentials(request: Request, payload=Body(...)):
     ip_address = get_web_user_ip_address(request)
     if check_fail_disable():
@@ -270,7 +270,7 @@ def enroll_server(request: Request, payload=Body(...)):
 
 
 @app.post("/v2/get_secret")
-def provide_secrete(request: Request, payload=Body(...)):
+def provide_secret(request: Request, payload=Body(...)):
     ip_address = get_web_user_ip_address(request)
     system_id = payload.get('system_id')
     encrypted_id = encrypt_secret(generate_secret('system_id'), system_id)
@@ -304,32 +304,6 @@ def provide_secrete(request: Request, payload=Body(...)):
 
 #### VERSION 1.0 Endpoints - Will be removed in the near term
 
-
-
-
-
-@app.post("/get_secret")
-def provide_secrete(request: Request, payload=Body(...)):
-    authenticated_servers = get_authenticated_servers()
-    client_host = get_web_user_ip_address(request)
-    if client_host not in authenticated_servers:
-        print(f'IP Address {client_host} attempted to get secret, and is not an authorized client')
-        set_fail()
-        raise HTTPException(status_code=403, detail="ACCESS DENIED")
-        return
-    elif check_fail_disable():
-        print(f'IP Address {client_host} attempted to get secret while system is disabled.')
-        set_fail()
-        raise HTTPException(status_code=403, detail="API Disabled")
-        return
-    elif not check_active():
-        print(f'IP Address {client_host} attempted to get secret.  OTP has not been provided.')
-        return {'response': 'Authorized user must provide OTP'}
-    requested_password = payload.get('requested_password', None)
-    if requested_password == None:
-        return {'response': 'No secret requested'}
-    response = get_secret(requested_password)
-    return response
 
 
 
