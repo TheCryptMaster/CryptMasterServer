@@ -32,7 +32,7 @@ def aesCbcPbkdf2EncryptToBase64(COMMON_ENCRYPTION_KEY, plaintext):
     return saltBase64 + ":" + ivBase64 + ":" + ciphertextBase64
 
 def aesCbcPbkdf2DecryptFromBase64(COMMON_ENCRYPTION_KEY, ciphertextBase64):
-    COMMON_ENCRYPTION_KEY.encode("ascii")
+    passwordBytes = COMMON_ENCRYPTION_KEY.encode("ascii")
     data = ciphertextBase64.split(":")
     salt = base64Decoding(data[0])
     iv = base64Decoding(data[1])
@@ -50,5 +50,5 @@ def encrypt_secret(COMMON_ENCRYPTION_KEY, plain_text_secret):
     return encrypted_secret
 
 def decrypt_secret(COMMON_ENCRYPTION_KEY, encrypted_secret):
-    decrypted_secret = json.loads(COMMON_ENCRYPTION_KEY, aesCbcPbkdf2DecryptFromBase64(encrypted_secret))
+    decrypted_secret = json.loads(aesCbcPbkdf2DecryptFromBase64(COMMON_ENCRYPTION_KEY, encrypted_secret))
     return decrypted_secret

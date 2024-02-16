@@ -96,7 +96,7 @@ def add_user():
             print('\nPlease enter a numerical value, or leave blank for default.\n')
             continue
         break
-    provisioning_uri, encrypted_otp = generate_user_creds(user_email, user_pass)
+    provisioning_uri, encrypted_otp = generate_user_creds(user_email, generate_secret(user_pass))
     add_user_to_db(user_email, encrypted_otp, user_expiry)
     print('\nUser added!  Use QR Code to Onboard\n')
     display_qr(provisioning_uri)

@@ -199,8 +199,9 @@ def check_password_v2(user, user_pass, one_time_pass, client_host):
         raise HTTPException(status_code=403, detail="User Not Found!")
         return
     user_row, encrypted_otp = user_details[0], user_details[1]
+    user_secret = generate_secret(user_pass)
     try:
-        pyotp_seed = decrypt_secret(user_pass, encrypted_otp)
+        pyotp_seed = decrypt_secret(user_secret, encrypted_otp)[1:-1]
     except:
         set_fail()
         raise HTTPException(status_code=403, detail="Bad Password!")
@@ -209,7 +210,7 @@ def check_password_v2(user, user_pass, one_time_pass, client_host):
     if not totp.verify(otp=one_time_pass, valid_window=totp_window):
         print(f'User: {user} at IP Address {client_host} attempted to open api with an invalid OTP')
         set_fail()
-        raise HTTPException(status_code=403, detail="Invalid Credentials")
+        raise HTTPException(status_code=403, detail="Invalid OTP")
     else:
         print(f'User: {user} at IP Address {client_host} SUCCESSFULLY OPENED API')
         active_until = set_active_until()
