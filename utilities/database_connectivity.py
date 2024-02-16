@@ -1,4 +1,3 @@
-import os
 import pandas.io.sql as psql
 import sys
 

@@ -3,7 +3,7 @@ import random
 import sys
 
 from PypeDreams import pype_dreamer
-from seed_tools import generate_seed, get_entropy
+from utilities.seed_tools import generate_seed, get_entropy
 
 
 

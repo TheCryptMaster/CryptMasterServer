@@ -29,6 +29,3 @@ def get_db_secret():
         db_pass += (random.choice(ALPHABET))
     return db_pass
 
-
-#def get_db_secret():
-#    return generate_secret('CryptMaster')

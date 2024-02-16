@@ -1,11 +1,14 @@
 import io
+import os
 import pyotp
 import qrcode
+import sys
 
 # Lots of work left for this script
 from getpass import getpass
 from password_strength import PasswordPolicy
-from utilities.database_connectivity import query_db, execute_db
+from time import sleep
+from utilities.database_connectivity import query_db, execute_db, set_domain_name
 from utilities.secret_generator import generate_secret
 from utilities.key_crypt import encrypt_secret, decrypt_secret
 
@@ -30,6 +33,14 @@ PASS_POLICY = PasswordPolicy.from_names(
 )
 
 PASS_STRENGTH = PasswordPolicy.from_names(entropybits=25)
+
+
+def clear_screen():
+    # for windows
+    if os.name == 'nt':
+        _ = os.system('cls')
+    else:
+        _ = os.system('clear')
 
 
 
@@ -123,3 +134,43 @@ def generate_user_creds(user_email, user_pass):
     provisioning_uri = pyotp.totp.TOTP(otp).provisioning_uri(name=user_email, issuer_name=OTP_ISSUER)
     encrypted_otp = encrypt_secret(user_pass, otp)
     return provisioning_uri, encrypted_otp
+
+
+def display_options():
+    options = ['Add User to System', 'Set Domain Name', 'Quit']
+    clear_screen()
+    display_string = ('Welcome to the Crypt Master Setup.  Please choose from the following'
+                      'options.\n\n')
+    for i, option in enumerate(options, start=1):
+        display_string += f'{i}) {option}\n'
+    selection = input(display_string)
+    return selection
+
+
+
+
+
+def run_setup():
+    clear_screen()
+    print('Setup Script is under development. Not all items work yet.')
+    sleep(5)
+    fail_count = 0
+    while True:
+        if fail_count > 2:
+            print('Too many failures.  Please run setup again.')
+            sys.exit()
+        selection = display_options()
+        if selection == '1':
+            add_user()
+        elif selection == '2':
+            set_domain_name()
+        elif selection == '3':
+            print('Thank you for using the Crypt Master!')
+            os.exit()
+        else:
+            print('That is not a valid option')
+            sleep(3)
+            fail_count += 1
+
+
+run_setup()
