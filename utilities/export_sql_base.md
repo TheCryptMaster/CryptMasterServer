@@ -1,1 +1,1 @@
-"C:\Program Files\PostgreSQL\16\bin\pg_dump" --schema-only --username=cryptmaster cryptmaster_db
+"C:\Program Files\PostgreSQL\16\bin\pg_dump" --schema-only --username=cryptmaster cryptmaster_db > c:\temp\cryptmaster_schema.sql

@@ -69,7 +69,8 @@ CREATE TABLE public.cryptmaster_warden (
     open_until timestamp with time zone DEFAULT now() NOT NULL,
     api_lockdown boolean DEFAULT false NOT NULL,
     lockdown_until timestamp with time zone DEFAULT now() NOT NULL,
-    send_alerts boolean DEFAULT false NOT NULL
+    send_alerts boolean DEFAULT false NOT NULL,
+    host_name character varying DEFAULT 'secure-api.yourdomain.com'::character varying NOT NULL
 );
 
 
