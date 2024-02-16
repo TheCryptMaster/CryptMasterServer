@@ -11,8 +11,8 @@ class CryptMasterClientAuth:
     def initiate_auth(self, payload):
         print(payload)
         ip_address, system_id = payload['ip_address'], payload['system_id']
-        encrypted_id = encrypt_secret(generate_secret('system_id'), system_id)
-        encrypted_ip = encrypt_secret(generate_secret('ip_address'), ip_address)
+        encrypted_id = generate_secret(str(system_id))
+        encrypted_ip = generate_secret(ip_address)
         get_salt = query_db(f"SELECT server_salt FROM app_servers WHERE server_name = '{encrypted_id}' AND ip_address = '{encrypted_ip}'")
         if len(get_salt) == 0:
             return False, None
@@ -31,3 +31,4 @@ class CryptMasterClientAuth:
                 self._PENDING_AUTHS.delete(secret)
                 return True
         return False
+

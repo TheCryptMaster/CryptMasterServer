@@ -153,10 +153,10 @@ def get_pending_enrollments():
 def approve_server(server_details):
     enroll_row, payload = server_details[0], server_details[1]
     system_id, system_salt, ip_address = payload.get('system_id'), payload.get('system_salt'), payload.get('ip_address')
-    encrypted_id = encrypt_secret(generate_secret('system_id'), system_id)
+    encrypted_id = generate_secret(str(system_id))
     encrypted_salt = encrypt_secret(generate_secret('system_salt'), system_salt)
-    encrypted_ip = encrypt_secret(generate_secret('ip_address'), ip_address)
-    execute_db(f"INSERT INTO app_servers(server_name, ip_address, server_salt) VALUES('{encrypted_id}', '{encrypted_salt}', '{encrypted_salt}')")
+    encrypted_ip = generate_secret(ip_address)
+    execute_db(f"INSERT INTO app_servers(server_name, ip_address, server_salt) VALUES('{encrypted_id}', '{encrypted_ip}', '{encrypted_salt}')")
     execute_db(f"UPDATE pending_enrollments SET enrollment_complete = True WHERE id = {enroll_row}")
     return
 
