@@ -233,7 +233,6 @@ def header_response(request: Request, payload=Body(...)):
     allowed, response = crypt_master_server_auth.initiate_auth(payload)
     if not allowed:
         return Response("Unauthorized", 401,{'WWW-Authenticate': 'Digest realm="Protected"'})
-    print(response)
     return response
 
 

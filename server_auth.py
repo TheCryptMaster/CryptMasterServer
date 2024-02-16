@@ -9,7 +9,6 @@ class CryptMasterClientAuth:
         self._AUTH_SEED = generate_secret(None, 64)
 
     def initiate_auth(self, payload):
-        print(payload)
         ip_address, system_id = payload['ip_address'], payload['system_id']
         encrypted_id = generate_secret(str(system_id))
         encrypted_ip = generate_secret(ip_address)
