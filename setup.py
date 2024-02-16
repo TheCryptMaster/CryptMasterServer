@@ -141,7 +141,7 @@ def generate_user_creds(user_email, user_pass):
 def display_options():
     options = ['Add User to System', 'Set Domain Name', 'Quit']
     clear_screen()
-    display_string = ('Welcome to the Crypt Master Setup.  Please choose from the following'
+    display_string = ('\nWelcome to the Crypt Master Setup.  Please choose from the following'
                       ' options.\n\n')
     for i, option in enumerate(options, start=1):
         display_string += f'{i}) {option}\n'
@@ -159,7 +159,8 @@ def run_setup():
     fail_count = 0
     while True:
         if fail_count > 2:
-            print('Too many failures.  Please run setup again.')
+            clear_screen()
+            print('\nToo many failures.  Please run setup again.')
             sys.exit()
         selection = display_options()
         if selection == '1':
@@ -167,10 +168,11 @@ def run_setup():
         elif selection == '2':
             set_domain_name()
         elif selection == '3':
-            print('Thank you for using the Crypt Master!')
+            clear_screen()
+            print('\nThank you for using the Crypt Master!')
             sys.exit()
         else:
-            print('That is not a valid option')
+            print('\nThat is not a valid option')
             sleep(3)
             fail_count += 1
 
