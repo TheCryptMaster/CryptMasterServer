@@ -142,7 +142,7 @@ def display_options():
     options = ['Add User to System', 'Set Domain Name', 'Quit']
     clear_screen()
     display_string = ('Welcome to the Crypt Master Setup.  Please choose from the following'
-                      'options.\n\n')
+                      ' options.\n\n')
     for i, option in enumerate(options, start=1):
         display_string += f'{i}) {option}\n'
     selection = input(display_string)
@@ -155,7 +155,7 @@ def display_options():
 def run_setup():
     clear_screen()
     print('Setup Script is under development. Not all items work yet.')
-    sleep(5)
+    sleep(3)
     fail_count = 0
     while True:
         if fail_count > 2:
