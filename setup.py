@@ -137,7 +137,28 @@ def get_system_users():
     return system_users
 
 
+def get_pending_enrollments():
+    pending_enrollments = []
+    enrollments = query_db(f"SELECT id enrollment_row, pending_enrollment, date_requested FROM pending_enrollments WHERE is_expired = False AND enrollment_complete = False")
+    if len(enrollments) == 0:
+        return pending_enrollments
+    i = 0
+    while i < len(enrollments):
+        enrollment_row, pending_enrollment, date_requested = int(enrollments['enrollment_row'][i]), enrollments['pending_enrollment'][i], enrollments['date_requested'][i].to_pydatetime()
+        decrypted_payload = decrypt_secret(generate_secret('enrollment'), pending_enrollment)
+        pending_enrollments.append([enrollment_row, decrypted_payload, date_requested])
+        i += 1
+    return pending_enrollments
 
+def approve_server(server_details):
+    enroll_row, payload = server_details[0], server_details[1]
+    system_id, system_salt, ip_address = payload.get('system_id'), payload.get('system_salt'), payload.get('ip_address')
+    encrypted_id = encrypt_secret(generate_secret('system_id'), system_id)
+    encrypted_salt = encrypt_secret(generate_secret('system_salt'), system_salt)
+    encrypted_ip = encrypt_secret(generate_secret('ip_address'), ip_address)
+    execute_db(f"INSERT INTO app_servers(server_name, ip_address, server_salt) VALUES('{encrypted_id}', '{encrypted_salt}', '{encrypted_salt}')")
+    execute_db(f"UPDATE pending_enrollments SET enrollment_complete = True WHERE id = {enroll_row}")
+    return
 
 
 def update_remove_user():
