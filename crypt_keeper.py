@@ -12,6 +12,10 @@ import redis.asyncio as redis
 import os
 from dotenv import load_dotenv
 
+from utilities.database_connectivity import query_db, execute_db
+from utilities.secret_generator import generate_secret
+from utilities.key_crypt import encrypt_secret, decrypt_secret
+
 
 import pytz
 import uvicorn
@@ -174,10 +178,61 @@ def get_web_user_ip_address(request):
 
 
 
+def get_user_details(user_name):
+    user_details = []
+    execute_db(f"UPDATE user_accounts SET is_active = False WHERE now() > active_until AND is_active = True")
+    user_lookup = query_db(f"SELECT id user_row, user_otp_hash FROM user_accounts WHERE username = '{user_name}' AND is_active = True")
+    if len(user_lookup) != 0:
+        user_details = [int(user_lookup['user_row'][0]), user_lookup['user_otp_hash'][0]]
+    return user_details
+
+
+
+
+def check_password_v2(user, user_pass, one_time_pass, client_host):
+    global fail_count
+    if check_fail_disable():
+        raise HTTPException(status_code=403, detail="System Disabled")
+    user_details = get_user_details(user)
+    if len(user_details) == 0:
+        set_fail()
+        raise HTTPException(status_code=403, detail="User Not Found!")
+        return
+    user_row, encrypted_otp = user_details[0], user_details[1]
+    try:
+        pyotp_seed = decrypt_secret(user_pass, encrypted_otp)
+    except:
+        set_fail()
+        raise HTTPException(status_code=403, detail="Bad Password!")
+        return
+    totp = pyotp.TOTP(pyotp_seed)
+    if not totp.verify(otp=one_time_pass, valid_window=totp_window):
+        print(f'User: {user} at IP Address {client_host} attempted to open api with an invalid OTP')
+        set_fail()
+        raise HTTPException(status_code=403, detail="Invalid Credentials")
+    else:
+        print(f'User: {user} at IP Address {client_host} SUCCESSFULLY OPENED API')
+        active_until = set_active_until()
+        string_time = active_until.strftime("%m-%d-%Y_%Hh%Mm%Ss")
+        response = {'response': 'Success', 'active_until': string_time}
+        clear_fails()
+    return response
+
+
+
 @app.on_event("startup")
 async def startup():
     limiter = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
     await FastAPILimiter.init(limiter)
+
+
+
+
+
+
+
+
+
 
 
 
@@ -193,11 +248,12 @@ def validate_credentials(request: Request, payload=Body(...)):
         raise HTTPException(status_code=403, detail="API Disabled")
         return
     user = payload.get('user_name', None)
+    user_pass = payload.get('user_pass', None)
     one_time_pass = str(payload.get('otp', None))
-    if user == None or one_time_pass == None:
+    if user == None or one_time_pass == None or user_pass == None:
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid Credentials")
-    response = check_password(user, one_time_pass, client_host)
+    response = check_password_v2(user, user_pass, one_time_pass, client_host)
     return response
 
 
