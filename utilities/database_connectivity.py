@@ -106,7 +106,9 @@ def set_host_name():
         if fail_count > 3:
             print('Failed to set host name. Please set the host name from setup before using the Crypt Master.')
             break
-        host_name = input('\nWhat host name will you use with your Crypt Master? i.e. secure-api: ')
+        host_name = input('\nWhat host name will you use with your Crypt Master? (default: secure-api): ')
+        if host_name == '':
+            host_name = 'secure_api'
         correct = input(f'You entered {host_name}.  Is that correct?  (y/n): ')
         encrypted_hostname = encrypt_secret(generate_secret('hostname'), host_name)
         if correct[:1].lower() == 'y':
