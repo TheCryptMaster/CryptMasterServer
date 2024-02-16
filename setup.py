@@ -10,7 +10,7 @@ import sys
 from getpass import getpass
 from password_strength import PasswordPolicy
 from time import sleep
-from utilities.database_connectivity import query_db, execute_db, set_domain_name, set_host_name, sqlalchemy_escape
+from utilities.database_connectivity import query_db, execute_db, set_domain_name, set_host_name
 from utilities.secret_generator import generate_secret
 from utilities.key_crypt import encrypt_secret, decrypt_secret
 
@@ -121,7 +121,7 @@ def add_user():
 def add_user_to_db(user_email, encrypted_otp, user_expiry):
     user_email = generate_secret(user_email)
     assert check_existing('user', user_email) is None
-    execute_db(f"INSERT INTO USER_ACCOUNTS(username, user_otp_hash, active_until) VALUES('{user_email}', '{sqlalchemy_escape(encrypted_otp)}', NOW() + '{user_expiry} DAYS')")
+    execute_db(f"INSERT INTO USER_ACCOUNTS(username, user_otp_hash, active_until) VALUES('{user_email}', '{encrypted_otp}', NOW() + '{user_expiry} DAYS')")
     return
 
 

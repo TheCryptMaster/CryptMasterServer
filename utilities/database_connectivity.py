@@ -19,9 +19,10 @@ db_uri = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 LATEST_VERSION = '2.0.0'
 
 def execute_db(query):
+    clean_query = sqlalchemy_escape(query)
     engine = create_engine(db_uri, pool_size=10, max_overflow=20)
     with engine.connect() as conn, conn.begin():
-        conn.execute(text(query))
+        conn.execute(text(clean_query))
     engine.dispose()
 
 def query_db(query):
@@ -93,7 +94,7 @@ def set_domain_name():
         correct = input(f'You entered {domain_name}.  Is that correct?  (y/n): ')
         encrypted_domain = encrypt_secret(generate_secret('domain'), domain_name)
         if correct[:1].lower() == 'y':
-            execute_db(f"UPDATE cryptmaster_warden SET domain_name = '{sqlalchemy_escape(encrypted_domain)}'")
+            execute_db(f"UPDATE cryptmaster_warden SET domain_name = '{encrypted_domain}'")
             break
     return
 
@@ -109,7 +110,7 @@ def set_host_name():
         correct = input(f'You entered {host_name}.  Is that correct?  (y/n): ')
         encrypted_hostname = encrypt_secret(generate_secret('hostname'), host_name)
         if correct[:1].lower() == 'y':
-            execute_db(f"UPDATE cryptmaster_warden SET host_name = '{sqlalchemy_escape(encrypted_hostname)}'")
+            execute_db(f"UPDATE cryptmaster_warden SET host_name = '{encrypted_hostname}'")
             break
     return
 
