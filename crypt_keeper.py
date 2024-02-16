@@ -238,7 +238,7 @@ def validate_credentials(request: Request, payload=Body(...)):
     return response
 
 
-@app.post("/v2/enroll_server, dependencies=[Depends(RateLimiter(times=3, seconds=60))]")
+@app.post("/v2/enroll_server", dependencies=[Depends(RateLimiter(times=3, seconds=60))])
 def enroll_server(request: Request, payload=Body(...)):
     client_host = get_web_user_ip_address(request)
     print(client_host, payload)
