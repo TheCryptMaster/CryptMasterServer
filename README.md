@@ -1,7 +1,3 @@
-UPDATES
-
-This is the second iteration of the version 2 branch
-
 Work is nearly complete on version 2.0.  Current dev has been merged in to main.  Will be starting a new version 2 branch to continue development on version 2.
 
 # Crypt Master Server
