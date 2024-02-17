@@ -28,7 +28,10 @@ CREATE TABLE public.app_servers (
     id integer NOT NULL,
     server_name character varying NOT NULL,
     ip_address character varying NOT NULL,
-    is_active boolean DEFAULT true NOT NULL
+    server_salt character varying NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    date_added timestamp with time zone DEFAULT now() NOT NULL,
+    active_until timestamp with time zone DEFAULT (now() + '60 days'::interval) NOT NULL
 );
 
 
@@ -207,6 +210,44 @@ ALTER SEQUENCE public.ipv4_blacklist_id_seq OWNER TO cryptmaster;
 --
 
 ALTER SEQUENCE public.ipv4_blacklist_id_seq OWNED BY public.ipv4_blacklist.id;
+
+
+--
+-- Name: pending_enrollments; Type: TABLE; Schema: public; Owner: cryptmaster
+--
+
+CREATE TABLE public.pending_enrollments (
+    id integer NOT NULL,
+    pending_enrollment character varying NOT NULL,
+    date_requested timestamp with time zone DEFAULT now() NOT NULL,
+    is_expired boolean DEFAULT false NOT NULL,
+    enrollment_attempts integer DEFAULT 0 NOT NULL,
+    enrollment_complete boolean DEFAULT false NOT NULL
+);
+
+
+ALTER TABLE public.pending_enrollments OWNER TO cryptmaster;
+
+--
+-- Name: pending_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: cryptmaster
+--
+
+CREATE SEQUENCE public.pending_enrollments_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.pending_enrollments_id_seq OWNER TO cryptmaster;
+
+--
+-- Name: pending_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cryptmaster
+--
+
+ALTER SEQUENCE public.pending_enrollments_id_seq OWNED BY public.pending_enrollments.id;
 
 
 --
@@ -391,6 +432,13 @@ ALTER TABLE ONLY public.ipv4_blacklist ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: pending_enrollments id; Type: DEFAULT; Schema: public; Owner: cryptmaster
+--
+
+ALTER TABLE ONLY public.pending_enrollments ALTER COLUMN id SET DEFAULT nextval('public.pending_enrollments_id_seq'::regclass);
+
+
+--
 -- Name: secret_acl id; Type: DEFAULT; Schema: public; Owner: cryptmaster
 --
 
@@ -424,14 +472,6 @@ ALTER TABLE ONLY public.user_accounts ALTER COLUMN id SET DEFAULT nextval('publi
 
 ALTER TABLE ONLY public.app_servers
     ADD CONSTRAINT app_servers_pkey PRIMARY KEY (id);
-
-
---
--- Name: app_servers app_servers_unique; Type: CONSTRAINT; Schema: public; Owner: cryptmaster
---
-
-ALTER TABLE ONLY public.app_servers
-    ADD CONSTRAINT app_servers_unique UNIQUE (ip_address);
 
 
 --
@@ -480,6 +520,14 @@ ALTER TABLE ONLY public.ipv4_allow
 
 ALTER TABLE ONLY public.ipv4_blacklist
     ADD CONSTRAINT ipv4_blacklist_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pending_enrollments pending_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: cryptmaster
+--
+
+ALTER TABLE ONLY public.pending_enrollments
+    ADD CONSTRAINT pending_enrollments_pkey PRIMARY KEY (id);
 
 
 --
