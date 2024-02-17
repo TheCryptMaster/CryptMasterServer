@@ -37,7 +37,6 @@ crypt_master_server_auth = CryptMasterClientAuth()
 utc = pytz.UTC
 #app = FastAPI(lifespan=lifespan)
 app = FastAPI()
-authenticated_servers_file = '.authenticated_servers'
 fail_count = 0
 fail_disable = datetime.now()
 active_until = datetime.now()
@@ -45,10 +44,10 @@ keep_active = 5 #minutes
 disable_time = 60 #minutes
 
 totp_window = int(os.getenv('totp_window'))
-db_connection = os.getenv('db_connection')
-async_db_connection = os.getenv('async_db_connection')
-encryption_password = os.getenv('encryption_password')
-test_password = "You're did it!"
+#db_connection = os.getenv('db_connection')
+#async_db_connection = os.getenv('async_db_connection')
+#encryption_password = os.getenv('encryption_password')
+
 pyotp_seed = os.getenv('pyotp_seed')
 pyotp_issuer = os.getenv('pyotp_issuer')
 api_port = int(os.getenv('api_port'))
@@ -86,10 +85,7 @@ app.add_middleware(
 
 
 
-def get_authenticated_servers():
-    with open(authenticated_servers_file) as f:
-        authenticated_servers = f.read().splitlines()
-    return authenticated_servers
+
 
 
 
