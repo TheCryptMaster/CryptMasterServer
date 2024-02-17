@@ -95,16 +95,11 @@ def get_authenticated_servers():
 
 
 def get_secret(requested_password):
-    if requested_password == 'test_password':
-        secret = test_password
-    elif requested_password == 'db_connection':
-        secret = db_connection
-    elif requested_password == 'async_db_connection':
-        secret = async_db_connection
-    elif requested_password == 'encryption_password':
-        secret = encryption_password
-    else:
-        secret = None
+    encrypted_name = generate_secret(requested_password)
+    get_secret = query_db(f"SELECT secret_pass FROM secrets WHERE secret_name = '{encrypted_name}'")
+    if len(get_secret) == 0:
+        return {'response': 'No secret found'}
+    secret = decrypt_secret(generate_secret(encrypted_name), get_secret['secret_pass'][0])
     response = {'response': 'SUCCESS', 'secret': secret}
     return response
 

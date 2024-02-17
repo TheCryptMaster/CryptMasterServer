@@ -137,6 +137,20 @@ def get_system_users():
     return system_users
 
 
+
+def add_secret_to_db(secret_name, secret_pass):
+    encrypted_name = generate_secret(secret_name)
+    encrypted_pass = encrypt_secret(generate_secret(encrypted_name), secret_pass)
+    if len(query_db(f"SELECT id FROM secrets WHERE secret_name = '{encrypted_name}'")) != 0:
+        print('Secret already in DB')
+        return
+    execute_db(f"INSERT INTO secrets(secret_name, secret_pass) VALUES('{encrypted_name}', '{encrypted_pass}')")
+    return
+
+
+
+
+
 def get_pending_enrollments():
     pending_enrollments = []
     enrollments = query_db(f"SELECT id enrollment_row, pending_enrollment, date_requested FROM pending_enrollments WHERE is_expired = False AND enrollment_complete = False")
