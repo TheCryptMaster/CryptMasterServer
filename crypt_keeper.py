@@ -134,7 +134,9 @@ def set_active_until():
 
 
 def get_web_user_ip_address(request):
-    client_host = request.client.host
+    client_host = all_info.headers.get('x-forwarded-for', None)
+    if client_host == None:
+        client_host = request.client.host
     return client_host
 
 
