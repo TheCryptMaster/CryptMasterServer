@@ -261,7 +261,7 @@ def enroll_server(request: Request, payload=Body(...)):
 
 
 
-@app.post("/v2/get_secret", dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+@app.post("/v2/get_secret", dependencies=[Depends(RateLimiter(times=30, seconds=60))])
 def provide_secret(request: Request, payload=Body(...)):
     ip_address = get_web_user_ip_address(request)
     system_id = payload.get('system_id')
