@@ -84,7 +84,9 @@ app.add_middleware(
 
 
 
-
+def print_current_time():
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S +00:00")
+    return current_time
 
 
 
@@ -173,11 +175,11 @@ def check_password(user, user_pass, one_time_pass, client_host):
         return
     totp = pyotp.TOTP(pyotp_seed)
     if not totp.verify(otp=one_time_pass, valid_window=totp_window):
-        print(f'User: {user} at IP Address {client_host} attempted to open api with an invalid OTP')
+        print(f'{print_current_time()} - User: {user} at IP Address {client_host} attempted to open api with an invalid OTP')
         set_fail()
         raise HTTPException(status_code=403, detail="Invalid OTP")
     else:
-        print(f'User: {user} at IP Address {client_host} SUCCESSFULLY OPENED API')
+        print(f'{print_current_time()} - User: {user} at IP Address {client_host} SUCCESSFULLY OPENED API')
         active_until = set_active_until()
         string_time = active_until.strftime("%m-%d-%Y_%Hh%Mm%Ss")
         response = {'response': 'Success', 'active_until': string_time}
@@ -234,7 +236,7 @@ def header_response(request: Request, payload=Body(...)):
 def validate_credentials(request: Request, payload=Body(...)):
     ip_address = get_web_user_ip_address(request)
     if check_fail_disable():
-        print(f'IP Address {ip_address} attempted to get secret while system is disabled.')
+        print(f'{print_current_time()} - IP Address {ip_address} attempted to get secret while system is disabled.')
         set_fail()
         raise HTTPException(status_code=403, detail="API Disabled")
         return
@@ -268,22 +270,22 @@ def provide_secret(request: Request, payload=Body(...)):
     encrypted_id = generate_secret(str(system_id))
     encrypted_ip = generate_secret(ip_address)
     if len(query_db(f"SELECT id FROM app_servers WHERE server_name = '{encrypted_id}' AND ip_address = '{encrypted_ip}'")) == 0:
-        print(f'IP Address {ip_address} attempted to get secret, and is not a valid server')
+        print(f'{print_current_time()} - IP Address {ip_address} attempted to get secret, and is not a valid server')
         set_fail()
         raise HTTPException(status_code=403, detail="ACCESS DENIED")
         return
     if not crypt_master_server_auth.validate_secret(payload.get('auth_response', None)):
-        print(f'IP Address {ip_address} attempted to get secret, with invalid credentials.')
+        print(f'{print_current_time()} - IP Address {ip_address} attempted to get secret, with invalid credentials.')
         set_fail()
         raise HTTPException(status_code=403, detail="ACCESS DENIED")
         return
     elif check_fail_disable():
-        print(f'IP Address {ip_address} attempted to get secret while system is disabled.')
+        print(f'{print_current_time()} - IP Address {ip_address} attempted to get secret while system is disabled.')
         set_fail()
         raise HTTPException(status_code=403, detail="API Disabled")
         return
     elif not check_active():
-        print(f'IP Address {ip_address} attempted to get secret.  OTP has not been provided.')
+        print(f'{print_current_time()} - IP Address {ip_address} attempted to get secret.  OTP has not been provided.')
         return {'response': 'Authorized user must provide OTP'}
     requested_password = payload.get('requested_password', None)
     if requested_password == None:
