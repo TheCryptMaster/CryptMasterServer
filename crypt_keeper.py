@@ -162,6 +162,7 @@ def check_password(user, user_pass, one_time_pass, client_host):
         raise HTTPException(status_code=403, detail="System Disabled")
     user_details = get_user_details(user)
     if len(user_details) == 0:
+        print(f'{print_current_time()} {user} failed to logon at IP {client_host}.  User not found.')
         set_fail()
         raise HTTPException(status_code=403, detail="User Not Found!")
         return
