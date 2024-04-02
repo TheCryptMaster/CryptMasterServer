@@ -19,8 +19,8 @@ def generate_secret(passphrase=None, length=32):
 
 
 def get_db_secret():
-    #system_id = get_system_id()
-    system_id = 'Crypt_keeper'
+    system_id = get_system_id()
+    #system_id = 'Crypt_keeper'
     entropy = ENTROPY + 'cryptmasterdbpass' + str(system_id)
     random.seed(entropy)
     ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
