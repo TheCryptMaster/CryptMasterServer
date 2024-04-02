@@ -1,9 +1,8 @@
 import random
-import uuid
 
 from datetime import datetime
 from seed_manager import ENTROPY
-
+from utilities.system_data import get_system_id
 
 
 def generate_secret(passphrase=None, length=32):
@@ -20,7 +19,7 @@ def generate_secret(passphrase=None, length=32):
 
 
 def get_db_secret():
-    system_id = uuid.getnode()
+    system_id = get_system_id()
     entropy = ENTROPY + 'cryptmasterdbpass' + str(system_id)
     random.seed(entropy)
     ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
