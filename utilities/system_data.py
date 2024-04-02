@@ -2,7 +2,7 @@ import uuid
 
 def get_system_id():
     id = uuid.uuid1()
-    return id.hex
+    return id.hex[-24:]
 
 def clean_result(string_info):
     new_string = ''
