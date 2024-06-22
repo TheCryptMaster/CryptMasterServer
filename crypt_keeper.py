@@ -223,7 +223,7 @@ def add_pending_request(payload):
 #### VERSION 2.0 Endpoints - Current API Endpoints
 
 
-@app.post("/v2/start_auth", dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+@app.post("/v2/start_auth", dependencies=[Depends(RateLimiter(times=30, seconds=60))])
 def header_response(request: Request, payload=Body(...)):
     payload['ip_address'] = get_web_user_ip_address(request)
     allowed, response = crypt_master_server_auth.initiate_auth(payload)
