@@ -226,6 +226,7 @@ def add_pending_request(payload):
 @app.post("/v2/start_auth", dependencies=[Depends(RateLimiter(times=30, seconds=60))])
 def header_response(request: Request, payload=Body(...)):
     payload['ip_address'] = get_web_user_ip_address(request)
+    print(payload['ip_address'])
     allowed, response = crypt_master_server_auth.initiate_auth(payload)
     if not allowed:
         return Response("Unauthorized", 401,{'WWW-Authenticate': 'Digest realm="Protected"'})
