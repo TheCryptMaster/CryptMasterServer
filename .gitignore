@@ -9,6 +9,8 @@ app_db/dev_db_file.db
 
 *.pem
 *.log
+*.xml
+*.iml
 
 backups/
 
