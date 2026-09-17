@@ -33,6 +33,11 @@ each user (`python -m cli.manage`, option "Add user") -- it's one QR code
 scan and takes under a minute per person, and it means every user starts
 the new system on the stronger Argon2id-derived key by default.
 
+This CLI and the web admin console's "migrate from a legacy server" first-run
+option (app/web/routers/setup.py) share the same read path
+(migration/legacy_reader.py) and write path (migration/writer.py); this file
+is just the argument parsing and reporting layer on top of both.
+
 USAGE
 -----
     python -m migration.migrate_v1_to_v2 \\
@@ -54,17 +59,13 @@ import argparse
 import asyncio
 import json
 import sys
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from dataclasses import dataclass, field
 
 import sqlalchemy as sa
 
-from app.config import settings
-from app.crypto import blind_index, encrypt_field
 from app.db import session_scope
-from app.models import AppServer, AppServerIp, Secret, SystemConfig, User
-from app.password_crypto import encrypt_with_password
-from migration.legacy_crypto import legacy_decrypt_secret, legacy_generate_secret
+from migration.legacy_reader import LegacyDecryptionError, read_app_server, read_secret, read_system_config, read_user
+from migration.writer import write_app_server, write_secret, write_system_config, write_user
 
 
 @dataclass
@@ -74,6 +75,7 @@ class MigrationCounts:
     users: int = 0
     skipped: int = 0
     failed: int = 0
+    errors: list[str] = field(default_factory=list)
 
 
 def load_old_entropy(path: str) -> str:
@@ -81,191 +83,93 @@ def load_old_entropy(path: str) -> str:
         return f.read()
 
 
-def old_engine(dsn: str) -> sa.Engine:
-    return sa.create_engine(dsn)
+async def run_migration(
+    old_dsn: str,
+    entropy: str,
+    secrets: list[str],
+    app_servers: list[dict],
+    users: list[dict],
+    dry_run: bool = False,
+) -> MigrationCounts:
+    """The full migration, driven from already-loaded inputs (no file I/O,
+    no argparse) so it can be awaited directly from a FastAPI request
+    handler as well as from main() below."""
+    counts = MigrationCounts()
+    old_engine = sa.create_engine(old_dsn)
 
+    try:
+        with old_engine.connect() as old_conn:
+            config = read_system_config(old_conn, entropy)
+            if config is not None:
+                if dry_run:
+                    counts.errors.append(f"[system_config] would migrate host={config['host_name']!r} domain={config['domain_name']!r}")
+                else:
+                    async with session_scope() as session:
+                        wrote = await write_system_config(session, config["host_name"], config["domain_name"])
+                    counts.errors.append("[system_config] migrated" if wrote else "[system_config] already present, skipped")
 
-def migrate_system_config(old_conn: sa.Connection, entropy: str, dry_run: bool) -> None:
-    row = old_conn.execute(
-        sa.text("SELECT domain_name, host_name FROM cryptmaster_warden ORDER BY id ASC LIMIT 1")
-    ).mappings().first()
-    if row is None:
-        print("[system_config] no cryptmaster_warden row found in old DB, skipping")
-        return
-    domain = legacy_decrypt_secret(legacy_generate_secret(entropy, "domain"), row["domain_name"])
-    host = legacy_decrypt_secret(legacy_generate_secret(entropy, "hostname"), row["host_name"])
-    print(f"[system_config] recovered host={host!r} domain={domain!r}")
-    if dry_run:
-        return
-
-    async def _write():
-        async with session_scope() as session:
-            existing = await session.execute(sa.select(SystemConfig).limit(1))
-            if existing.scalar_one_or_none() is not None:
-                print("[system_config] a config row already exists in the new DB, leaving it alone")
-                return
-            session.add(
-                SystemConfig(
-                    host_name_enc=encrypt_field(settings.master_key, "hostname", host),
-                    domain_name_enc=encrypt_field(settings.master_key, "domain", domain),
-                    schema_version="2.0.0",
-                )
-            )
-
-    asyncio.run(_write())
-
-
-def migrate_secrets(old_conn: sa.Connection, entropy: str, names: list[str], dry_run: bool, counts: MigrationCounts) -> None:
-    for name in names:
-        legacy_name_hash = legacy_generate_secret(entropy, name)
-        row = old_conn.execute(
-            sa.text("SELECT secret_pass FROM secrets WHERE secret_name = :name"),
-            {"name": legacy_name_hash},
-        ).mappings().first()
-        if row is None:
-            print(f"[secret:{name}] not found in old DB")
-            counts.failed += 1
-            continue
-        try:
-            value = legacy_decrypt_secret(legacy_generate_secret(entropy, legacy_name_hash), row["secret_pass"])
-        except Exception as exc:  # noqa: BLE001
-            print(f"[secret:{name}] failed to decrypt: {exc}")
-            counts.failed += 1
-            continue
-        print(f"[secret:{name}] recovered ({len(value)} chars)")
-        if dry_run:
-            counts.secrets += 1
-            continue
-
-        async def _write(name=name, value=value):
-            async with session_scope() as session:
-                index = blind_index(settings.master_key, "secret_name", name)
-                existing = await session.execute(select_secret_by_index(index))
-                if existing.scalar_one_or_none() is not None:
-                    print(f"[secret:{name}] already present in new DB, skipping")
+            for name in secrets:
+                value = read_secret(old_conn, entropy, name)
+                if value is None:
+                    counts.failed += 1
+                    counts.errors.append(f"[secret:{name}] not found in old database")
+                    continue
+                if dry_run:
+                    counts.secrets += 1
+                    continue
+                async with session_scope() as session:
+                    wrote = await write_secret(session, name, value)
+                if wrote:
+                    counts.secrets += 1
+                else:
                     counts.skipped += 1
-                    return
-                session.add(
-                    Secret(
-                        secret_name_enc=encrypt_field(settings.master_key, "secret_name", name),
-                        secret_name_index=index,
-                        secret_value_enc=encrypt_field(settings.master_key, "secret_value", value),
-                    )
-                )
-                counts.secrets += 1
+                    counts.errors.append(f"[secret:{name}] already present in new database, skipped")
 
-        asyncio.run(_write())
-
-
-def select_secret_by_index(index: str):
-    return sa.select(Secret.id).where(Secret.secret_name_index == index)
-
-
-def migrate_app_servers(
-    old_conn: sa.Connection, entropy: str, servers: list[dict], dry_run: bool, counts: MigrationCounts
-) -> None:
-    for entry in servers:
-        system_id, ip_address = entry["system_id"], entry["ip_address"]
-        legacy_id_hash = legacy_generate_secret(entropy, str(system_id))
-        legacy_ip_hash = legacy_generate_secret(entropy, ip_address)
-        row = old_conn.execute(
-            sa.text(
-                "SELECT server_salt FROM app_servers WHERE server_name = :sid AND ip_address = :ip"
-            ),
-            {"sid": legacy_id_hash, "ip": legacy_ip_hash},
-        ).mappings().first()
-        if row is None:
-            print(f"[server:{system_id}] not found in old DB for ip {ip_address}")
-            counts.failed += 1
-            continue
-        try:
-            salt = legacy_decrypt_secret(legacy_generate_secret(entropy, "system_salt"), row["server_salt"])
-        except Exception as exc:  # noqa: BLE001
-            print(f"[server:{system_id}] failed to decrypt salt: {exc}")
-            counts.failed += 1
-            continue
-        print(f"[server:{system_id}] recovered salt")
-        if dry_run:
-            counts.app_servers += 1
-            continue
-
-        async def _write(system_id=system_id, ip_address=ip_address, salt=salt):
-            async with session_scope() as session:
-                index = blind_index(settings.master_key, "system_id", system_id)
-                existing = await session.execute(
-                    sa.select(AppServer.id).where(AppServer.server_name_index == index)
-                )
-                if existing.scalar_one_or_none() is not None:
-                    print(f"[server:{system_id}] already present in new DB, skipping")
+            for entry in app_servers:
+                system_id, ip_address = entry["system_id"], entry["ip_address"]
+                salt = read_app_server(old_conn, entropy, system_id, ip_address)
+                if salt is None:
+                    counts.failed += 1
+                    counts.errors.append(f"[server:{system_id}] not found in old database for ip {ip_address}")
+                    continue
+                if dry_run:
+                    counts.app_servers += 1
+                    continue
+                async with session_scope() as session:
+                    wrote = await write_app_server(session, system_id, salt, ip_address)
+                if wrote:
+                    counts.app_servers += 1
+                else:
                     counts.skipped += 1
-                    return
-                new_server = AppServer(
-                    server_name_enc=encrypt_field(settings.master_key, "system_id", system_id),
-                    server_name_index=index,
-                    server_salt_enc=encrypt_field(settings.master_key, "server_salt", salt),
-                    active_until=datetime.now(timezone.utc) + timedelta(days=60),
-                )
-                session.add(new_server)
-                await session.flush()
-                session.add(
-                    AppServerIp(
-                        server_id=new_server.id,
-                        ip_address_enc=encrypt_field(settings.master_key, "ip_address", ip_address),
-                        ip_address_index=blind_index(settings.master_key, "ip_address", ip_address),
-                    )
-                )
-                counts.app_servers += 1
+                    counts.errors.append(f"[server:{system_id}] already present in new database, skipped")
 
-        asyncio.run(_write())
-
-
-def migrate_users(
-    old_conn: sa.Connection, entropy: str, users: list[dict], dry_run: bool, counts: MigrationCounts
-) -> None:
-    for entry in users:
-        email, password = entry["email"].lower(), entry["password"]
-        legacy_username_hash = legacy_generate_secret(entropy, email)
-        row = old_conn.execute(
-            sa.text(
-                "SELECT id, user_otp_hash, active_until FROM user_accounts WHERE username = :u AND is_active = True"
-            ),
-            {"u": legacy_username_hash},
-        ).mappings().first()
-        if row is None:
-            print(f"[user:{email}] not found (or inactive) in old DB")
-            counts.failed += 1
-            continue
-        try:
-            legacy_password_key = legacy_generate_secret(entropy, password)
-            seed = legacy_decrypt_secret(legacy_password_key, row["user_otp_hash"])
-        except Exception as exc:  # noqa: BLE001
-            print(f"[user:{email}] failed to decrypt OTP seed (wrong password?): {exc}")
-            counts.failed += 1
-            continue
-        print(f"[user:{email}] recovered OTP seed")
-        if dry_run:
-            counts.users += 1
-            continue
-
-        async def _write(email=email, password=password, seed=seed, active_until=row["active_until"]):
-            async with session_scope() as session:
-                index = blind_index(settings.master_key, "username", email)
-                existing = await session.execute(sa.select(User.id).where(User.username_index == index))
-                if existing.scalar_one_or_none() is not None:
-                    print(f"[user:{email}] already present in new DB, skipping")
+            for entry in users:
+                email, password = entry["email"].lower(), entry["password"]
+                try:
+                    result = read_user(old_conn, entropy, email, password)
+                except LegacyDecryptionError:
+                    counts.failed += 1
+                    counts.errors.append(f"[user:{email}] found but the supplied password did not decrypt their OTP seed")
+                    continue
+                if result is None:
+                    counts.failed += 1
+                    counts.errors.append(f"[user:{email}] not found (or inactive) in old database")
+                    continue
+                seed, active_until = result
+                if dry_run:
+                    counts.users += 1
+                    continue
+                async with session_scope() as session:
+                    wrote = await write_user(session, email, password, seed, active_until)
+                if wrote:
+                    counts.users += 1
+                else:
                     counts.skipped += 1
-                    return
-                session.add(
-                    User(
-                        username_enc=encrypt_field(settings.master_key, "username", email),
-                        username_index=index,
-                        otp_seed_enc=encrypt_with_password(password, seed),
-                        active_until=active_until,
-                    )
-                )
-                counts.users += 1
+                    counts.errors.append(f"[user:{email}] already present in new database, skipped")
+    finally:
+        old_engine.dispose()
 
-        asyncio.run(_write())
+    return counts
 
 
 def main() -> None:
@@ -280,14 +184,19 @@ def main() -> None:
         manifest = json.load(f)
 
     entropy = load_old_entropy(args.old_entropy_file)
-    engine = old_engine(args.old_dsn)
-    counts = MigrationCounts()
+    counts = asyncio.run(
+        run_migration(
+            args.old_dsn,
+            entropy,
+            manifest.get("secrets", []),
+            manifest.get("app_servers", []),
+            manifest.get("users", []),
+            dry_run=args.dry_run,
+        )
+    )
 
-    with engine.connect() as old_conn:
-        migrate_system_config(old_conn, entropy, args.dry_run)
-        migrate_secrets(old_conn, entropy, manifest.get("secrets", []), args.dry_run, counts)
-        migrate_app_servers(old_conn, entropy, manifest.get("app_servers", []), args.dry_run, counts)
-        migrate_users(old_conn, entropy, manifest.get("users", []), args.dry_run, counts)
+    for line in counts.errors:
+        print(line)
 
     mode = "DRY RUN -- " if args.dry_run else ""
     print(

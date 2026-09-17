@@ -34,7 +34,30 @@ in the manifest for a scripted cutover, but re-enrolling each user via
 `python -m cli.manage` (one QR scan) is simpler and starts them on the
 stronger key derivation by default.
 
-## Running it
+## Two ways to run the migration
+
+### Option A: the admin web console's first-run flow
+
+A brand-new, uninitialized v2 server offers three setup options: create an
+empty vault, restore a portable backup, or **migrate from a legacy server**.
+The third option is `POST /api/setup/migrate-legacy` -- it takes the same
+inputs as the manifest below (old DB connection string, old `.entropy`
+contents, and the secrets/servers/users lists) directly in the request body,
+runs the migration inline, and reports counts back to the browser. It's
+disabled the moment the vault is initialized, so it can't be used against a
+running system. If the manifest's `users` list is empty (or every entry
+fails), the endpoint falls back to creating the same default admin
+credentials the "create empty vault" option would, so you're never left with
+data but no way to log in.
+
+Migrated users keep their **original password and authenticator app codes**
+-- no forced rotation, unlike the default-credentials path -- since their
+OTP seed is decrypted with their existing password and re-encrypted with
+that same password, unchanged. They're also all granted the `admin` role,
+since v1 had no role concept: everyone who could open the vault had full
+authority over it.
+
+### Option B: the CLI tool, for a scripted/offline cutover
 
 1. Stand up the new database and apply migrations (`alembic upgrade head`).
 2. Keep the v1 `.entropy` file and v1 database reachable (read-only) during
@@ -65,3 +88,7 @@ stronger key derivation by default.
 6. Re-enroll any user not listed in the manifest, and re-point app servers'
    `CryptMaster` client config at the new host once you're satisfied.
 7. Decommission the v1 server and shred the old `.entropy` file.
+
+Both options share the same read path (`migration/legacy_reader.py`) and
+write path (`migration/writer.py`); the CLI and the web endpoint are just
+different front ends over the same logic.

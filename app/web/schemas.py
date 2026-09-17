@@ -159,3 +159,34 @@ class BackupExportResponse(BaseModel):
 
 class BackupRestoreRequest(BaseModel):
     data: dict
+
+
+# --- legacy (v1) migration, third first-run option ---
+
+
+class MigrateLegacyServerEntry(BaseModel):
+    system_id: str
+    ip_address: str
+
+
+class MigrateLegacyUserEntry(BaseModel):
+    email: str
+    password: str
+
+
+class MigrateLegacyRequest(BaseModel):
+    old_dsn: str
+    old_entropy: str
+    secrets: list[str] = Field(default_factory=list)
+    app_servers: list[MigrateLegacyServerEntry] = Field(default_factory=list)
+    users: list[MigrateLegacyUserEntry] = Field(default_factory=list)
+    dry_run: bool = False
+
+
+class MigrateLegacyResponse(BaseModel):
+    secrets_migrated: int
+    app_servers_migrated: int
+    users_migrated: int
+    skipped: int
+    failed: int
+    log: list[str]

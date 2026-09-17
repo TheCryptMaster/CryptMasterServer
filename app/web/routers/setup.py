@@ -23,8 +23,11 @@ from app.web.schemas import (
     BackupRestoreRequest,
     CreateDatabaseRequest,
     DefaultAdminInfo,
+    MigrateLegacyRequest,
+    MigrateLegacyResponse,
     SetupStatus,
 )
+from migration.migrate_v1_to_v2 import run_migration
 
 router = APIRouter(prefix="/api/setup", tags=["setup"])
 
@@ -76,3 +79,51 @@ async def restore_database(payload: BackupRestoreRequest, session: AsyncSession 
 
     await log_event(session, "database_restored", f"restored_at={dt.datetime.now(dt.timezone.utc).isoformat()}")
     return {"ok": True}
+
+
+@router.post("/migrate-legacy", response_model=MigrateLegacyResponse)
+async def migrate_legacy(payload: MigrateLegacyRequest, session: AsyncSession = Depends(get_session)):
+    """Third first-run option: pull data straight from a reachable v1
+    server's database instead of creating empty or restoring a backup file.
+
+    Runs against the OLD database with a blocking (sync) SQLAlchemy engine,
+    interleaved with async writes into the current database -- acceptable
+    here because this only ever runs once, by a solo admin, during initial
+    setup; it is never reachable once the vault is initialized.
+    """
+    if await _is_initialized(session):
+        raise HTTPException(status_code=409, detail="Already initialized")
+
+    counts = await run_migration(
+        payload.old_dsn,
+        payload.old_entropy,
+        payload.secrets,
+        [entry.model_dump() for entry in payload.app_servers],
+        [entry.model_dump() for entry in payload.users],
+        dry_run=payload.dry_run,
+    )
+
+    if not payload.dry_run and not await _is_initialized(session):
+        # No users came over (empty/omitted manifest section, or all failed) --
+        # fall back to default credentials rather than leave a populated but
+        # unloggable-into vault.
+        await create_default_admin(session)
+        counts.errors.append(
+            f"No users were migrated; created default admin credentials instead "
+            f"({DEFAULT_ADMIN_USERNAME} / {DEFAULT_ADMIN_PASSWORD} -- change immediately on first login)."
+        )
+
+    await log_event(
+        session,
+        "legacy_migration_run" if not payload.dry_run else "legacy_migration_dry_run",
+        f"secrets={counts.secrets} app_servers={counts.app_servers} users={counts.users} failed={counts.failed}",
+    )
+
+    return MigrateLegacyResponse(
+        secrets_migrated=counts.secrets,
+        app_servers_migrated=counts.app_servers,
+        users_migrated=counts.users,
+        skipped=counts.skipped,
+        failed=counts.failed,
+        log=counts.errors,
+    )
