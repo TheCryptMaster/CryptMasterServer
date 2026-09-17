@@ -19,5 +19,16 @@ async def session_scope() -> AsyncIterator[AsyncSession]:
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:
+    """FastAPI dependency version of session_scope(). Commits on a clean
+    handler return, rolls back on exception. (A plain `async with
+    SessionLocal() as session: yield session` -- what this used to be --
+    does NOT commit: Session.close() rolls back any open transaction, so
+    every write made through `Depends(get_session)` was silently discarded.)
+    """
     async with SessionLocal() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
