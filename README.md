@@ -56,3 +56,12 @@ pytest
 `python -m cli.manage` replaces v1's `add_remove.py` and `setup.py` with a
 single tool that talks to the real database through the ORM (no more
 plaintext `.authenticated_users` file, no more f-string SQL).
+
+## Admin web console
+
+v1 had no web UI at all. `web/` is a React admin console covering
+first-run setup (create a vault, restore a backup, or migrate from a
+legacy v1 server), server enrollment with IP allow-lists, users, secrets,
+activity logs, and the portable encrypted backup feature. See
+[`web/README.md`](./web/README.md) for how to run it; it talks to the
+`/api/*` routes added alongside the existing `/v2/*` server-to-server API.
