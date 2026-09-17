@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cryptmaster
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in your environment}
+      POSTGRES_DB: cryptmaster_db
+    volumes:
+      - cryptmaster_db_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - internal
+
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "2053:2053"
+    volumes:
+      - ./.fullchain.pem:/srv/.fullchain.pem:ro
+      - ./.privkey.pem:/srv/.privkey.pem:ro
+    networks:
+      - internal
+      - external
+
+networks:
+  internal:
+    internal: true
+  external:
+
+volumes:
+  cryptmaster_db_data:
