@@ -27,7 +27,7 @@ from sqlalchemy import select
 from app.config import settings
 from app.crypto import blind_index, encrypt_field
 from app.db import session_scope
-from app.models import AppServer, PendingEnrollment, Secret, SecretAcl, User
+from app.models import AppServer, AppServerIp, PendingEnrollment, Secret, SecretAcl, User
 from app.password_crypto import encrypt_with_password
 
 PASS_POLICY = PasswordPolicy.from_names(length=12, uppercase=1, numbers=1, special=1, nonletters=1)
@@ -69,6 +69,10 @@ async def add_user() -> None:
     expiry_days_raw = input("Account active for how many days? (default 365): ").strip()
     expiry_days = int(expiry_days_raw) if expiry_days_raw else 365
 
+    role = ""
+    while role not in ("admin", "operator"):
+        role = input("Role (admin/operator): ").strip().lower()
+
     seed = pyotp.random_base32()
     provisioning_uri = pyotp.TOTP(seed).provisioning_uri(name=email, issuer_name=settings.totp_issuer)
 
@@ -78,6 +82,7 @@ async def add_user() -> None:
                 username_enc=encrypt_field(settings.master_key, "username", email),
                 username_index=blind_index(settings.master_key, "username", email),
                 otp_seed_enc=encrypt_with_password(password, seed),
+                role=role,
                 active_until=datetime.now(timezone.utc) + timedelta(days=expiry_days),
             )
         )
@@ -110,16 +115,24 @@ async def remove_user() -> None:
     print("User disabled.")
 
 
-async def approve_server(system_id: str, system_salt: str, ip_address: str, active_days: int = 60) -> None:
+async def approve_server(
+    system_id: str, system_salt: str, ip_address: str, active_days: int = 60, label: str = ""
+) -> None:
     async with session_scope() as session:
+        server = AppServer(
+            server_name_enc=encrypt_field(settings.master_key, "system_id", system_id),
+            server_name_index=blind_index(settings.master_key, "system_id", system_id),
+            server_salt_enc=encrypt_field(settings.master_key, "server_salt", system_salt),
+            label=label,
+            active_until=datetime.now(timezone.utc) + timedelta(days=active_days),
+        )
+        session.add(server)
+        await session.flush()
         session.add(
-            AppServer(
-                server_name_enc=encrypt_field(settings.master_key, "system_id", system_id),
-                server_name_index=blind_index(settings.master_key, "system_id", system_id),
+            AppServerIp(
+                server_id=server.id,
                 ip_address_enc=encrypt_field(settings.master_key, "ip_address", ip_address),
                 ip_address_index=blind_index(settings.master_key, "ip_address", ip_address),
-                server_salt_enc=encrypt_field(settings.master_key, "server_salt", system_salt),
-                active_until=datetime.now(timezone.utc) + timedelta(days=active_days),
             )
         )
     print("Server enrolled.")
@@ -177,6 +190,7 @@ async def add_secret() -> None:
             return
         session.add(
             Secret(
+                secret_name_enc=encrypt_field(settings.master_key, "secret_name", name),
                 secret_name_index=blind_index(settings.master_key, "secret_name", name),
                 secret_value_enc=encrypt_field(settings.master_key, "secret_value", value),
             )

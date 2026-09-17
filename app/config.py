@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     tls_keyfile: str = ".privkey.pem"
     cors_allowed_origins: list[str] = Field(default_factory=list)
 
+    # --- Admin web UI ---
+    # False only for local HTTP development (vite dev server without TLS).
+    # Always True in any deployment reachable over the network.
+    session_cookie_secure: bool = True
+
     # --- Database ---
     database_url: str = Field(..., description="postgresql+asyncpg://user:pass@host:port/db")
 

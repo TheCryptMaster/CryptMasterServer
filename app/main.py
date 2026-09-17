@@ -23,6 +23,7 @@ from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.audit import log_event
 from app.auth import (
     AuthError,
     authenticate_user,
@@ -50,6 +51,13 @@ from app.security import (
     mark_system_open,
     record_failure,
 )
+from app.web.routers import auth as web_auth_router
+from app.web.routers import backup as web_backup_router
+from app.web.routers import logs as web_logs_router
+from app.web.routers import secrets as web_secrets_router
+from app.web.routers import servers as web_servers_router
+from app.web.routers import setup as web_setup_router
+from app.web.routers import users as web_users_router
 from sqlalchemy import select, update
 import json
 
@@ -66,13 +74,28 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Crypt Master Server", version="2.0.0", lifespan=lifespan)
 
+# Serves both the server-to-server /v2/* API (no cookies, no credentials
+# needed) and the admin web UI's /api/* routes (cookie-based sessions, so
+# allow_credentials must be on). allow_origins should list only the exact
+# origin(s) the web UI is actually served from -- never "*", since
+# allow_credentials=True makes a wildcard meaningless anyway (browsers
+# reject the combination) and this app has no browser-facing endpoints that
+# should accept arbitrary origins.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_allowed_origins,
-    allow_credentials=False,
-    allow_methods=["POST"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["Content-Type"],
 )
+
+app.include_router(web_setup_router.router)
+app.include_router(web_auth_router.router)
+app.include_router(web_servers_router.router)
+app.include_router(web_users_router.router)
+app.include_router(web_secrets_router.router)
+app.include_router(web_logs_router.router)
+app.include_router(web_backup_router.router)
 
 
 def client_ip(request: Request) -> str:
@@ -92,6 +115,7 @@ async def start_auth(
     allowed, nonce = await initiate_server_auth(session, payload.system_id, ip)
     if not allowed:
         logger.warning("start_auth rejected for system_id=%s ip=%s", payload.system_id, ip)
+        await log_event(session, "vault_start_auth_rejected", f"system_id={payload.system_id} ip={ip}")
         raise HTTPException(status_code=401, detail="Unauthorized")
     return StartAuthResponse(response="Awaiting Key", nonce=nonce)
 
@@ -116,12 +140,14 @@ async def enable_api(
         logger.warning("login failed user=%s ip=%s reason=%s", payload.user_name, ip, exc.message)
         await record_failure("login", identity)
         await record_failure("login", ip)
+        await log_event(session, "vault_open_failed", f"user={payload.user_name} ip={ip} reason={exc.message}")
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
     await clear_failures("login", identity)
     await clear_failures("login", ip)
     expiry_str = await mark_system_open()
     logger.info("login success user=%s ip=%s", payload.user_name, ip)
+    await log_event(session, "vault_opened", f"user={payload.user_name} ip={ip}", significant=True)
     return EnableApiResponse(response="Success", active_until=expiry_str)
 
 
@@ -157,6 +183,7 @@ async def enroll_server(
     session.add(
         PendingEnrollment(system_id_index=system_id_index, payload_enc=payload_blob)
     )
+    await log_event(session, "server_enrollment_requested", f"system_id={payload.system_id} ip={ip}")
     return {"response": "enrollment pending"}
 
 
@@ -179,6 +206,7 @@ async def get_secret(
         logger.warning("get_secret auth failed system_id=%s ip=%s", payload.system_id, ip)
         await record_failure("secret", identity)
         await record_failure("secret", ip)
+        await log_event(session, "secret_fetch_denied", f"system_id={payload.system_id} ip={ip}")
         raise HTTPException(status_code=403, detail="ACCESS DENIED")
 
     if not await is_system_open():
@@ -190,6 +218,7 @@ async def get_secret(
 
     await clear_failures("secret", identity)
     await clear_failures("secret", ip)
+    await log_event(session, "secret_fetched", f"system_id={payload.system_id} ip={ip} secret={payload.requested_password}")
     return GetSecretResponse(response="SUCCESS", secret=secret)
 
 

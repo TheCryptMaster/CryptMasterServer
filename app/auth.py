@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.crypto import DecryptionError, blind_index, decrypt_field, encrypt_field
-from app.models import AppServer, Secret, SecretAcl, User
+from app.models import AppServer, AppServerIp, Secret, SecretAcl, User
 from app.password_crypto import decrypt_with_password
 from app.security import pop_pending_challenge, store_pending_challenge
 
@@ -81,10 +81,13 @@ async def initiate_server_auth(
     system_id_index = blind_index(settings.master_key, "system_id", system_id)
     ip_index = blind_index(settings.master_key, "ip_address", ip_address)
     result = await session.execute(
-        select(AppServer).where(
+        select(AppServer)
+        .join(AppServerIp, AppServerIp.server_id == AppServer.id)
+        .where(
             AppServer.server_name_index == system_id_index,
-            AppServer.ip_address_index == ip_index,
             AppServer.is_active.is_(True),
+            AppServerIp.ip_address_index == ip_index,
+            AppServerIp.is_active.is_(True),
         )
     )
     server = result.scalar_one_or_none()
@@ -130,10 +133,12 @@ async def get_secret_for_server(
         select(Secret.secret_value_enc)
         .join(SecretAcl, SecretAcl.secret_id == Secret.id)
         .join(AppServer, AppServer.id == SecretAcl.server_id)
+        .join(AppServerIp, AppServerIp.server_id == AppServer.id)
         .where(
             AppServer.server_name_index == system_id_index,
-            AppServer.ip_address_index == ip_index,
             AppServer.is_active.is_(True),
+            AppServerIp.ip_address_index == ip_index,
+            AppServerIp.is_active.is_(True),
             SecretAcl.is_active.is_(True),
             Secret.secret_name_index == secret_index,
             Secret.is_active.is_(True),

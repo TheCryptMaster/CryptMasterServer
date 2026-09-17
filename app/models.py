@@ -31,12 +31,21 @@ class SystemConfig(Base):
 
 
 class User(Base):
+    """A human admin-console user.
+
+    role is either "admin" (full access, including database export/restore
+    and managing other users' roles) or "operator" (day-to-day management of
+    servers/secrets/logs, but cannot export a backup or touch user roles).
+    """
+
     __tablename__ = "user_accounts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     username_enc: Mapped[str] = mapped_column(String, nullable=False)
     username_index: Mapped[str] = mapped_column(String, nullable=False, unique=True, index=True)
     otp_seed_enc: Mapped[str] = mapped_column(String, nullable=False)
+    role: Mapped[str] = mapped_column(String, nullable=False, server_default="operator")
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     active_until: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     date_added: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -48,20 +57,42 @@ class AppServer(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     server_name_enc: Mapped[str] = mapped_column(String, nullable=False)
     server_name_index: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    ip_address_enc: Mapped[str] = mapped_column(String, nullable=False)
-    ip_address_index: Mapped[str] = mapped_column(String, nullable=False, index=True)
     server_salt_enc: Mapped[str] = mapped_column(String, nullable=False)
+    label: Mapped[str] = mapped_column(String, nullable=False, server_default="")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     date_added: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     active_until: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     acl_entries: Mapped[list["SecretAcl"]] = relationship(back_populates="server")
+    allowed_ips: Mapped[list["AppServerIp"]] = relationship(
+        back_populates="server", cascade="all, delete-orphan"
+    )
+
+
+class AppServerIp(Base):
+    """One entry in a server's IP allow-list.
+
+    v1 allowed exactly one IP per enrolled server. The web UI's "lock down to
+    IP address(es)" requirement needs a set, so this is a proper child table
+    instead of widening app_servers.ip_address into a delimited string.
+    """
+
+    __tablename__ = "app_server_ips"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    server_id: Mapped[int] = mapped_column(ForeignKey("app_servers.id"), nullable=False)
+    ip_address_enc: Mapped[str] = mapped_column(String, nullable=False)
+    ip_address_index: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    server: Mapped[AppServer] = relationship(back_populates="allowed_ips")
 
 
 class Secret(Base):
     __tablename__ = "secrets"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    secret_name_enc: Mapped[str] = mapped_column(String, nullable=False)
     secret_name_index: Mapped[str] = mapped_column(String, nullable=False, unique=True, index=True)
     secret_value_enc: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

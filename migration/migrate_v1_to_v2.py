@@ -62,7 +62,7 @@ import sqlalchemy as sa
 from app.config import settings
 from app.crypto import blind_index, encrypt_field
 from app.db import session_scope
-from app.models import AppServer, Secret, SystemConfig, User
+from app.models import AppServer, AppServerIp, Secret, SystemConfig, User
 from app.password_crypto import encrypt_with_password
 from migration.legacy_crypto import legacy_decrypt_secret, legacy_generate_secret
 
@@ -147,6 +147,7 @@ def migrate_secrets(old_conn: sa.Connection, entropy: str, names: list[str], dry
                     return
                 session.add(
                     Secret(
+                        secret_name_enc=encrypt_field(settings.master_key, "secret_name", name),
                         secret_name_index=index,
                         secret_value_enc=encrypt_field(settings.master_key, "secret_value", value),
                     )
@@ -198,14 +199,19 @@ def migrate_app_servers(
                     print(f"[server:{system_id}] already present in new DB, skipping")
                     counts.skipped += 1
                     return
+                new_server = AppServer(
+                    server_name_enc=encrypt_field(settings.master_key, "system_id", system_id),
+                    server_name_index=index,
+                    server_salt_enc=encrypt_field(settings.master_key, "server_salt", salt),
+                    active_until=datetime.now(timezone.utc) + timedelta(days=60),
+                )
+                session.add(new_server)
+                await session.flush()
                 session.add(
-                    AppServer(
-                        server_name_enc=encrypt_field(settings.master_key, "system_id", system_id),
-                        server_name_index=index,
+                    AppServerIp(
+                        server_id=new_server.id,
                         ip_address_enc=encrypt_field(settings.master_key, "ip_address", ip_address),
                         ip_address_index=blind_index(settings.master_key, "ip_address", ip_address),
-                        server_salt_enc=encrypt_field(settings.master_key, "server_salt", salt),
-                        active_until=datetime.now(timezone.utc) + timedelta(days=60),
                     )
                 )
                 counts.app_servers += 1
